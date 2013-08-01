@@ -99,7 +99,50 @@ describe('booster',function () {
 			});		  
 		});
 		describe('with nested resource', function(){
-		  
+			before(function (done) {
+				db.reset();
+				app = this.app = express();
+				app.use(express.bodyParser());
+				booster.init({db:db,app:app});
+				booster.resource('post');
+				booster.resource('comment',{parent:'post'});
+				r = request(app);
+				done();
+			});
+			it('should map nested LIST',function (done) {
+				r.get('/post/1/comment').expect(200,db.data("comment")).end(done);
+			});
+			it('should map nested GET',function (done) {
+				r.get('/post/1/comment/1').expect(200,db.data("comment",0)).end(done);
+			});
+			it('should return 404 when GET for absurd ID of nested item',function (done) {
+				r.get('/post/1/comment/12345').expect(404).end(done);
+			});
+			it('should map nested PUT',function (done) {
+				async.series([
+					function (cb) {r.put('/post/1/comment/1').send({comment:"new comment"}).expect(200,cb);},
+					function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},db.data("comment",0),{comment:"new comment"}),cb);}
+				],done);
+			});
+			it('should return 404 for non-existent PUT for nested absurd ID',function (done) {
+				r.put('/post/1/comment/12345').send({title:"nowfoo"}).expect(404).end(done);
+			});
+			it('should map nested POST',function (done) {
+				var newPost = {comment:"new comment"};
+				async.waterfall([
+					function (cb) {r.post('/post/1/comment').send(newPost).expect(201,cb);},
+					function (res,cb) {r.get('/post/1/comment/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
+				],done);
+			});
+			it('should map nested DELETE',function (done) {
+				async.series([
+					function (cb) {r.del('/post/1/comment/1').expect(200,cb);},
+					function (cb) {r.get('/post/1/comment/1').expect(404,cb);}
+				],done);
+			});
+			it('should 404 DELETE for absurd ID for nested',function (done) {
+				r.del('/post/1/comment/12345').expect(404).end(done);
+			});		  
 		});
 		describe('with controllers',function () {
 			before(function (done) {

@@ -95,8 +95,8 @@ booster.init(config); // returns booster, so you can chain
 
 And what exactly goes in that config, anyways?
 
-* `controllers`: path to controller files directory, relative to app root, e.g. `./ctrlr` (trailing slash is optional). Default is './routes'.
-* `models`: path to model files director, relative to app root, e.g. `./mymodels` (trailing slash is optional). Default is './models'.
+* `controllers`: path to controller files directory, relative to app root, e.g. `./ctrlr` (trailing slash is optional). Default is './routes', but **controllers are totally optional**.
+* `models`: path to model files director, relative to app root, e.g. `./mymodels` (trailing slash is optional). Default is './models', but **models are totally optional**.
 * `param`: parameters you want to make available to controller functions. Optional. Default is `{}`.
 * `db`: a database object. Required.
 * `app`: your express app object (you really should have one of these!). Required.
@@ -243,6 +243,18 @@ index: function(req,res,next) {
 	req.booster.param.sendmail();
 	// do lots of stuff here
 }
+````
+
+#### Global 'before' option for controllers
+If you are writing controller method overrides, and you want a function that will always be executed *before* the usual index/show/update/create/destroy, just add an `all` function.
+
+````JavaScript
+module.exports = {
+	all: function(req,res,next) {
+		// stuff here will always be done *before* the usual middleware methods
+		next();
+	}
+};
 ````
 
 And what about all of our models? What do we do with them?
