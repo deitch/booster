@@ -7,7 +7,6 @@ Booster is the ***fastest*** way to get a full-fledged REST service up and runni
 ````JavaScript
 var booster = require('booster'), express = require('express'), app = express(), db = require('./myDbSetup');
 
-app.use(express.bodyParser());
 booster.init({app:app,db:db});
 booster.resource('post');
 
@@ -17,8 +16,6 @@ app.listen(3000);
 Done! You now have a REST service listening on the five standard REST paths for 'post' and connecting to your database.
 
 Want customized controllers? Disable some paths? Nest resources? Model validations? Uniqueness? Read on!
-
-Don't forget: you need to use `express.bodyParser()` for booster to be able to, well, read the body!
 
 ##Installation
 

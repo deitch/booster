@@ -53,6 +53,32 @@ describe('booster',function () {
 				r.del('/post/12345').expect(404).end(done);
 			});
 		});
+		describe('without body parser', function(){
+			before(function (done) {
+				db.reset();
+				app = this.app = express();
+				booster.init({db:db,app:app});
+				booster.resource('post');
+				r = request(app);
+				done();
+			});
+			it('should successfully GET', function(done){
+				r.get('/post/1').expect(200,db.data("post",0),done);
+			});
+			it('should successfully PUT', function(done){
+				async.series([
+					function (cb) {r.put('/post/1').send({title:"nowfoo"}).expect(200,cb);},
+					function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),{title:"nowfoo"}),cb);}
+				],done);
+			});
+			it('should successfully POST', function(done){
+				var newPost = {title:"new post",content:"messy"};
+				async.waterfall([
+					function (cb) {r.post('/post').send(newPost).expect(201,cb);},
+					function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
+				],done);
+			});
+		});
 		describe('at the root path', function(){
 			before(function (done) {
 				db.reset();
