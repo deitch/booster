@@ -181,6 +181,7 @@ module.exports = {
 	update: null
 	// because we actively made update null, the update() function and its corresponding PUT /post/:post will be disabled and return 404
 };
+````
 
 #### What does the default controller do?
 Well, it looks like this but with real error-handling. Look at the source code in github if you want the real nitty-gritty.
