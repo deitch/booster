@@ -6,8 +6,34 @@ async = require('async'), should = require('should'), db = require('./resources/
 
 // call the debugger in case we are in debug mode
 describe('booster',function () {
+	var app, r;
+	describe('statics', function(){
+		before(function (done) {
+			db.reset();
+			app = this.app = express();
+			app.use(express.bodyParser());
+			booster.init({db:db,app:app,models:__dirname+'/resources/models'});
+			booster.resource('extender');
+			r = request(app);
+			done();
+		});
+		it('should have controllers hash', function(){
+		  booster.controllers.should.have.property('extender');
+		});
+		it('should have models hash', function(){
+		  booster.models.should.have.property('extender');
+		});
+		it('should extend extender model to have function extra',function () {
+			booster.models.extender.should.have.property("extra");
+		});	  
+		it('should have the extra on extender models as a function',function () {
+			booster.models.extender.extra.should.be.a("function");
+		});
+		it('should return the correct element on the extra function', function(){
+		  booster.models.extender.extra().should.equal("I am an extra function");
+		});
+	});
 	describe('.resource(name)',function () {
-		var app, r;
 		describe('without models or controllers',function () {
 			before(function (done) {
 				db.reset();

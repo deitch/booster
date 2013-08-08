@@ -268,6 +268,7 @@ So what is in a model? Actually, a model is an automatically generated JavaScrip
 * unique: what unique fields need to exist for this model
 * id: what the ID field is. We need this so that we can use "unique" comparisons and other services. Optional. Defaults to "id".
 * presave: a function to be executed immediately prior to saving a model via update or create. Optional.
+* extend: an object, with functions that will extend the model. Optional. See below.
 
 An actual model instance is just a plain old javascript object (POJSO). The data returned from the database to a controller should be a POJSO, as should the data sent back.
 
@@ -552,6 +553,42 @@ module.exports = {
 	}
 }
 ````
+
+#### Extend
+Every model class has a few pre-defined methods (listed in detail in the next section). However, if you want additional custom methods, you can add them here. 
+
+Why would you want them? Well, what if you want to do some unique processing, e.g. hashing passwords. You might want to be able to do:
+
+    booster.models.user.hashPassword(pass);
+		
+Here is an example `user.js` model file:
+
+````JavaScript
+module.export = {
+	fields: {
+		"id":{required:true},
+		"name":{required:true},
+		"fullname":{required:true},
+		"email":{required:true},
+		"password":{required:true,visibility:"secret"}
+	},extend: {
+		checkPassword: function (check,valid,callback) {
+			bcrypt.compare(check,valid,function (err,res) {
+				callback(res);
+			});
+		},
+		hashPass: function (pass,callback) {
+			bcrypt.genSalt(WORKFACTOR,function (err,salt) {
+				bcrypt.hash(pass,salt,function (err,hash) {
+					callback(hash);
+				});
+			});
+		}
+	}
+};
+````
+
+In the above example, in addition to the usual `get`, `find`, `create`, etc. model functions, you can call `booster.models.user.checkPassword("abc","asasqgsqb24h2whsq",callback);` and see if "abc" hashes to "asasqgsqb24h2whsq".
 
 #### Model Methods
 No, I don't mean ways to display clothing for photography!
