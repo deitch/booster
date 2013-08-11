@@ -1,7 +1,7 @@
 { 
 	"name": "booster", 
 	"description": "Booster is the ***fastest*** way to get a full-fledged REST service up and running in [nodejs](http://nodejs.org)!",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"url": "http://github.com/deitch/booster",
 	"author": "Avi Deitcher <avi@deitcher.net>",
 	"engines": ["node >= 0.8"],

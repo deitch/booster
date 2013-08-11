@@ -1,7 +1,7 @@
 /*jslint node:true */
 module.exports = {
 	fields: {
-		id: {required:true,createoptional:true},
+		id: {required:true,createoptional:true,mutable:false},
 		email: {validation:["email"]},
 		alpha: {validation: "alphanumeric"},
 		abc: {validation: function (name,field,mode,attrs) {

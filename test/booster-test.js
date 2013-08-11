@@ -397,20 +397,41 @@ describe('booster',function () {
 					r.get('/post/4').expect(400,{ other: 'unknownfield' }).end(done);
 				});
 				it('should accept PUT with valid fields',function (done) {
+					var rec = {title:"nowfoo",content:"newcontent"};
 					async.series([
-						function (cb) {r.put('/post/1').send({title:"nowfoo"}).expect(200,cb);},
-						function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),{title:"nowfoo"}),cb);}
+						function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
 					],done);
 				});
 				it('should reject PUT with invalid fields',function (done) {
 					async.series([
-						function (cb) {r.put('/post/1').send({other:"nowfoo"}).expect(400,{other:"unknownfield"},cb);},
+						function (cb) {r.put('/post/1').send({other:"nowfoo",title:"newtitle",content:"newcontent"}).expect(400,{other:"unknownfield"},cb);},
 						function (cb) {r.get('/post/1').expect(200,db.data("post",0),cb);}
 					],done);
 				});
-				it('should reject PUT that attempts to change mutable field',function (done) {
+				it('should reject PUT with missing fields',function (done) {
+					var rec = {content:"nowfoo"};
 					async.series([
-						function (cb) {r.put('/post/1').send({id:"20"}).expect(400,{id:"immutable"},cb);},
+						function (cb) {r.put('/post/1').send(rec).expect(400,{title:"required"},cb);},
+						function (cb) {r.get('/post/1').expect(200,db.data("post",0),cb);}
+					],done);
+				});
+				it('should reject PUT that attempts to change immutable field',function (done) {
+					async.series([
+						function (cb) {r.put('/post/1').send({id:"20",title:"newfoo"}).expect(400,{id:"immutable"},cb);},
+						function (cb) {r.get('/post/1').expect(200,db.data("post",0),cb);}
+					],done);
+				});
+				it('should accept PATCH with missing fields',function (done) {
+					var rec = {content:"newfoo"};
+					async.series([
+						function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+					],done);
+				});
+				it('should reject PATCH that attempts to change immutable field',function (done) {
+					async.series([
+						function (cb) {r.patch('/post/1').send({id:"20"}).expect(400,{id:"immutable"},cb);},
 						function (cb) {r.get('/post/1').expect(200,db.data("post",0),cb);}
 					],done);
 				});
@@ -424,6 +445,10 @@ describe('booster',function () {
 				it('should reject POST with invalid fields',function (done) {
 					var newpost = {title:"newfoo",content:"foo content",other:"otherfield"};
 					r.post('/post').send(newpost).expect(400,{other: "unknownfield"},done);
+				});
+				it('should reject POST with missing fields',function (done) {
+					var newpost = {content:"foo content"};
+					r.post('/post').send(newpost).expect(400,{title:"required"},done);
 				});
 			});
 			describe('with alternate id',function () {
