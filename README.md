@@ -55,16 +55,19 @@ You now have a RESTful app that listens on the following verb/path/action
     GET       /post/:post                     post#show()
     POST      /post                           post#create()
     PUT       /post/:post                     post#update()
+    PATCH     /post/:post                     post#patch()
     DELETE    /post/:post                     post#destroy()
 		GET       /post/:post/comment             comment#index()
 		GET       /post/:post/comment/:comment    comment#show()
 		POST      /post/:post/comment             comment#create()
 		PUT       /post/:post/comment/:comment    comment#update()
+		PATCH     /post/:post/comment/:comment    comment#patch()
 		DELETE    /post/:post/comment/:comment    comment#destroy()
     GET       /api/test                       test#index()
     GET       /api/test/:test                 test#show()
     POST      /api/test                       test#create()
     PUT       /api/test/:test                 test#update()
+    PATCH     /api/test/:test                 test#patch()
     DELETE    /api/test/:test                 test#destroy()
 
 and where exactly are those `post#index()` and `comment#show()` functions? You can create them or use the defaults:
@@ -104,12 +107,13 @@ The basic step is defining a REST resource.
 
     booster.resource('comment');
 		
-This sets up a resource named 'comment', expecting a controller (or using the default) for comment, and a model (or using the default) for comment. As shown above, it creates five paths by default:
+This sets up a resource named 'comment', expecting a controller (or using the default) for comment, and a model (or using the default) for comment. As shown above, it creates six paths by default:
 
     GET       /comment             comment#index()
     GET       /comment/:comment    comment#show()
     POST      /comment             comment#create()
     PUT       /comment/:comment    comment#update()
+    PATCH     /comment/:comment    comment#patch()
     DELETE    /comment/:comment    comment#destroy()
 
 
@@ -133,6 +137,7 @@ Which will give you
     GET       /api/comment/:comment    comment#show()
     POST      /api/comment             comment#create()
     PUT       /api/comment/:comment    comment#update()
+    PATCH     /api/comment/:comment    comment#patch()
     DELETE    /api/comment/:comment    comment#destroy()
 
 
@@ -147,6 +152,7 @@ Which will give you
     GET       /post/:post/comment/:comment    comment#show()
     POST      /post/:post/comment             comment#create()
     PUT       /post/:post/comment/:comment    comment#update()
+    PATCH     /post/:post/comment/:comment    comment#patch()
     DELETE    /post/:post/comment/:comment    comment#destroy()
 
 If you include *both* `parent` *and* `api`, it will ignore `api`.
@@ -162,6 +168,7 @@ Which will give you
     GET       /:comment     comment#show()
     POST      /             comment#create()
     PUT       /:comment     comment#update()
+    PATCH     /:comment     comment#patch()
     DELETE    /:comment     comment#destroy()
 
 Notice that the resource itself is still `comment`, but the path does not include the name `comment`.
@@ -203,6 +210,11 @@ module.exports = {
 	},
 	update: function(req,res,next) {
 		model.update(req.body.id,req.body,function(){
+			res.send(200);
+		});
+	},
+	patch: function(req,res,next) {
+		model.patch(req.body.id,req.body,function(){
 			res.send(200);
 		});
 	},
@@ -597,7 +609,8 @@ What methods are there on the models themselves? And when would you want to use 
 
 * get: retrieve one object by ID. Signature: `get(key,callback)`
 * find: retrieve one or more objects by search parameters. Signature: `find(search,callback)`
-* update: update one or more objects. Signature: `update(key,model,callback)`
+* update: update replace one or more objects. Signature: `update(key,model,callback)`
+* patch: update **without** replace one or more objects. Signature: `patch(key,model,callback)`
 * create: create a new object. Signature: `create(model,callback)`
 * destroy: destroy an object. Signature: `destroy(key,callback)`
 
@@ -608,6 +621,7 @@ The model will call validations in the following cases:
 * get: will validate the single retrieved object, if any, after getting from database
 * find: will validate each and every retrieved object, if any, after finding in database
 * update: will validate the object prior to sending to the database
+* patch: will validate the object prior to sending to the database
 * create: will validate the object prior to sending to the database
 
 ##### Callbacks
@@ -656,6 +670,7 @@ The `err` fields in the callback for validation errors, depends on how many reco
 In general, each record validated will return a single object if there were any validation errors. So:
 
 * If I do a `PUT /resource/:resource`, which calls `update()` on a single record, then any validation errors will return a single object.
+* If I do a `PATCH /resource/:resource`, which calls `update()` on a single record, then any validation errors will return a single object.
 * If I do a `GET /resource/:resource`, which calls `get()`, which retrieves a single record, then any validation errors will return a single object.
 * If I do a `POST /resource`, which calls `create()`, which creates a single record, then any validation errors will return a single object.
 * If I do a `GET /resource`, which calls `find()`, which retrieves one or more records, then any validation errors will return an *array* of objects, one entry in the array for each failed validation.
@@ -683,11 +698,6 @@ OK, so what are the possible values for the messages indicating what was wrong w
 
 
 
-
-
-
-
-
 ### Persistence
 Of course, the thing you want to do most with models is **persist** them - send them to a database and retrieve them from a database.
 
@@ -698,7 +708,8 @@ The `db` database object provides the abstraction layer to support any kind of d
 
 * get: retrieve one object by ID. Signature: `get(table,key,callback)`
 * find: retrieve one or more objects by search parameters. Signature: `find(table,search,callback)`
-* update: update one or more objects. Signature: `update(table,key,model,callback)`
+* update: update replace one or more objects. Signature: `update(table,key,model,callback)`
+* patch: update **without** replace one or more objects. Signature: `patch(table,key,model,callback)`
 * create: create a new object. Signature: `create(table,model,callback)`
 * destroy: destroy an object. Signature: `destroy(table,key,callback)`
 
@@ -763,7 +774,7 @@ find: function(table,search,callback) {
 Finding 0 objects is **not** considered an error. If the get was legitimate, and you managed to reach the database and do a search, but found no entry with that key, then you should `callback(null,null)` or `callback(null,[])`. `err` is reserved for *errors*.
 
 ##### update
-Update one object in the database.
+Update with replace (just like `HTTP PUT`) one object in the database.
 
     update(table,key,model,callback)
 
@@ -775,6 +786,31 @@ Update one object in the database.
 Example (couchdb):
 ````JavaScript
 update: function(table,key,model,callback) {
+	db.database(prefix+table).save(key,model,function(err,res){
+		callback(err);
+	});
+}
+````
+
+Parameters to the `callback()` should follow the following rules:
+
+1. If there were true errors: `callback(err)`
+2. If the item was updated: `callback(null,key)`. Sending back the key as the data is an indication that the data was updated.
+3. If the item was not found, e.g. the key does not point to a valid database record: `callback(null,null)`. Sending back *nothing* (`null` or `undefined`) in the `res` field indicates that there was nothing found.
+
+##### patch
+Update **without** replace (just like `HTTP PATCH`) one object in the database.
+
+    patch(table,key,model,callback)
+
+* table: The table for this model. See above.
+* key: the unique key for the object you are updating
+* val: the model to update, as a JavaScript object
+* callback: The callback for this `update()`. `res` in the callback is ignored
+
+Example (couchdb):
+````JavaScript
+patch: function(table,key,model,callback) {
 	db.database(prefix+table).save(key,model,function(err,res){
 		callback(err);
 	});

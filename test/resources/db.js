@@ -67,6 +67,17 @@ module.exports = {
 		return(this);
 	},
 	update: function (name,key,model,callback) {
+		var idx = findById(name,key), tmp;
+		if (idx >= 0) {
+			tmp = data[name][idx];
+			data[name][idx] = model;
+			callback(null,key);
+		} else {
+			callback(null,null);
+		}
+		return(this);
+	},
+	patch: function (name,key,model,callback) {
 		var idx = findById(name,key);
 		if (idx >= 0) {
 			_.extend(data[name][idx],model);

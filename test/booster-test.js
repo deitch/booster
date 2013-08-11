@@ -54,9 +54,17 @@ describe('booster',function () {
 				r.get('/post/12345').expect(404).end(done);
 			});
 			it('should map PUT',function (done) {
+				var rec = {title:"nowfoo"};
 				async.series([
-					function (cb) {r.put('/post/1').send({title:"nowfoo"}).expect(200,cb);},
-					function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),{title:"nowfoo"}),cb);}
+					function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
+					function (cb) {r.get('/post/1').expect(200,_.extend(rec,{id:"1"}),cb);}
+				],done);
+			});
+			it('should map PATCH',function (done) {
+				var rec = {title:"nowfoo"};
+				async.series([
+					function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
+					function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
 				],done);
 			});
 			it('should return 404 for non-existent PUT for absurd ID',function (done) {
@@ -94,6 +102,12 @@ describe('booster',function () {
 			it('should successfully PUT', function(done){
 				async.series([
 					function (cb) {r.put('/post/1').send({title:"nowfoo"}).expect(200,cb);},
+					function (cb) {r.get('/post/1').expect(200,_.extend({},{title:"nowfoo",id:"1"}),cb);}
+				],done);
+			});
+			it('should successfully PATCH', function(done){
+				async.series([
+					function (cb) {r.patch('/post/1').send({title:"nowfoo"}).expect(200,cb);},
 					function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),{title:"nowfoo"}),cb);}
 				],done);
 			});
@@ -125,9 +139,17 @@ describe('booster',function () {
 				r.get('/12345').expect(404).end(done);
 			});
 			it('should map PUT',function (done) {
+				var rec = {title:"nowfoo"};
 				async.series([
-					function (cb) {r.put('/1').send({title:"nowfoo"}).expect(200,cb);},
-					function (cb) {r.get('/1').expect(200,_.extend({},db.data("post",0),{title:"nowfoo"}),cb);}
+					function (cb) {r.put('/1').send(rec).expect(200,cb);},
+					function (cb) {r.get('/1').expect(200,_.extend({},rec,{id:"1"}),cb);}
+				],done);
+			});
+			it('should map PATCH',function (done) {
+				var rec = {title:"nowfoo"};
+				async.series([
+					function (cb) {r.patch('/1').send(rec).expect(200,cb);},
+					function (cb) {r.get('/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
 				],done);
 			});
 			it('should return 404 for non-existent PUT for absurd ID',function (done) {
@@ -174,7 +196,14 @@ describe('booster',function () {
 				it('should map PUT',function (done) {
 					async.series([
 						function (cb) {r.put(path+'/1').send({title:"nowfoo"}).expect(200,cb);},
-						function (cb) {r.get(path+'/1').expect(200,_.extend({},db.data("post",0),{title:"nowfoo"}),cb);}
+						function (cb) {r.get(path+'/1').expect(200,_.extend({},{title:"nowfoo"},{id:"1"}),cb);}
+					],done);
+				});
+				it('should map PATCH',function (done) {
+					var rec = {title:"nowfoo"};
+					async.series([
+						function (cb) {r.patch(path+'/1').send(rec).expect(200,cb);},
+						function (cb) {r.get(path+'/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
 					],done);
 				});
 				it('should return 404 for non-existent PUT for absurd ID',function (done) {
@@ -265,9 +294,17 @@ describe('booster',function () {
 				r.get('/post/1/comment/12345').expect(404).end(done);
 			});
 			it('should map nested PUT',function (done) {
+				var rec = {comment:"new comment"};
 				async.series([
-					function (cb) {r.put('/post/1/comment/1').send({comment:"new comment"}).expect(200,cb);},
-					function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},db.data("comment",0),{comment:"new comment"}),cb);}
+					function (cb) {r.put('/post/1/comment/1').send(rec).expect(200,cb);},
+					function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},rec,{id:"1"}),cb);}
+				],done);
+			});
+			it('should map nested PATCH',function (done) {
+				var rec = {comment:"new comment"};
+				async.series([
+					function (cb) {r.patch('/post/1/comment/1').send(rec).expect(200,cb);},
+					function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},db.data("comment",0),rec),cb);}
 				],done);
 			});
 			it('should return 404 for non-existent PUT for nested absurd ID',function (done) {
@@ -400,9 +437,17 @@ describe('booster',function () {
 					r.get('/different/12345').expect(404).end(done);
 				});
 				it('should map PUT',function (done) {
+					var rec = {comment:"nowfoo"};
 					async.series([
-						function (cb) {r.put('/different/1').send({comment:"nowfoo"}).expect(200,cb);},
-						function (cb) {r.get('/different/1').expect(200,_.extend({},db.data("different",0),{comment:"nowfoo"}),cb);}
+						function (cb) {r.put('/different/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/different/1').expect(200,_.extend({},rec,{key:"1"}),cb);}
+					],done);
+				});
+				it('should map PATCH',function (done) {
+					var rec = {comment:"nowfoo"};
+					async.series([
+						function (cb) {r.patch('/different/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/different/1').expect(200,_.extend({},db.data("different",0),rec),cb);}
 					],done);
 				});
 				it('should return 404 for non-existent PUT for absurd ID',function (done) {
