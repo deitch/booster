@@ -39,6 +39,18 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	validated: [
 		{id:"1",email:"a@email.com",alpha:"abcd",abc:"abc",def:"def"},
 		{id:"2",email:"bad@mail",alpha:"abcd !",abc:"aa",def:"fff"}
+	],
+	singleunique: [
+		{id:"1",firstname:"sam",lastname:"smith"},
+		{id:"2",firstname:"jill",lastname:"jones"}
+	],
+	doubleunique: [
+		{id:"1",firstname:"sam",lastname:"smith"},
+		{id:"2",firstname:"jill",lastname:"jones"}
+	],
+	combounique: [
+		{id:"1",firstname:"sam",lastname:"smith"},
+		{id:"2",firstname:"jill",lastname:"jones"}
 	]
 }, IDFIELDS = {
 	different: "key"
