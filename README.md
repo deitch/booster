@@ -239,6 +239,16 @@ index: function(req,res,next) {
 }
 ````
 
+**Note**: `req.booster` is available in *all* express routes, not just those inside booster controllers. For example:
+
+````JavaScript
+booster.resource('user');
+
+app.get('/foo',function(req,res,next){
+	req.booster.models.user(); // this works here!
+});
+````
+
 #### Parameters to controller functions
 And what if you want to pass some parameters to controller functions? For example, what if one of your controller functions needs to send emails, and you just happen to have a `sendmail` object in your app that knows how to do just that?
 

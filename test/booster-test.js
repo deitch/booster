@@ -642,4 +642,25 @@ describe('booster',function () {
 			});
 		});
 	});
+	describe('general route', function(){
+		before(function (done) {
+			db.reset();
+			app = this.app = express();
+			app.use(express.bodyParser());
+			booster.init({db:db,app:app});
+			booster.resource('post');
+			app.get('/booster',function (req,res,next) {
+				if (req.booster) {
+					res.send(200,req.booster);
+				} else {
+					res.send(404);
+				}
+			});
+			r = request(app);
+			done();
+		});
+	  it('should have access to req.booster on non-booster route', function(done){
+	    r.get('/booster').expect(200,{param:{},models:{post:{}}},done);
+	  });
+	});
 });
