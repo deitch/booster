@@ -47,10 +47,13 @@ describe('booster',function () {
 			it('should map LIST',function (done) {
 				r.get('/post').expect(200,db.data("post")).end(done);
 			});
+			it('should return 404 for unknown resource', function(done){
+			  r.get('/poster').expect(404,done);
+			});
 			it('should map GET',function (done) {
 				r.get('/post/1').expect(200,db.data("post",0)).end(done);
 			});
-			it('should return 404 when GET for absurd ID of post',function (done) {
+			it('should return 404 when GET for absurd ID',function (done) {
 				r.get('/post/12345').expect(404).end(done);
 			});
 			it('should map PUT',function (done) {
@@ -396,6 +399,9 @@ describe('booster',function () {
 				it('should successfully GET valid record',function (done) {
 					r.get('/post/1').expect(200,db.data("post",0)).end(done);
 				});
+				it('should return 404 when GET for absurd ID',function (done) {
+					r.get('/post/12345').expect(404).end(done);
+				});				
 				it('should reject GET record with field not in defined fields',function (done) {
 					r.get('/post/4').expect(400,{ other: 'unknownfield' }).end(done);
 				});
