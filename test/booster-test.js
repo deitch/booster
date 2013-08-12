@@ -533,39 +533,67 @@ describe('booster',function () {
 				});			
 			});
 			describe('with different visibility fields', function(){
-				var table = "user", data, privatedata, publicdata;
+				var table, data, privatedata, publicdata;
 				before(function(){
+					table = "user";
 					data = db.data(table);
 					privatedata = db.data("privateuser");
 					publicdata = db.data("publicuser");
 				});
-				describe('for a LIST',function () {
-					it('should get raw data without filter', function(){
-						booster.models.user.filter(data).should.eql(publicdata);
+				describe('direct API', function(){
+					describe('for a LIST',function () {
+						it('should get raw data without filter', function(){
+							booster.models.user.filter(data).should.eql(publicdata);
+						});
+						it('should get raw data with secret filter', function(){
+							booster.models.user.filter(data,"secret").should.eql(data);
+						});
+						it('should get public data with public filter', function(){
+							booster.models.user.filter(data,"public").should.eql(publicdata);
+						});
+						it('should get public and private data with private filter', function(){
+							booster.models.user.filter(data,"private").should.eql(privatedata);
+						});
 					});
-					it('should get raw data with secret filter', function(){
-						booster.models.user.filter(data,"secret").should.eql(data);
-					});
-					it('should get public data with public filter', function(){
-						booster.models.user.filter(data,"public").should.eql(publicdata);
-					});
-					it('should get public and private data with private filter', function(){
-						booster.models.user.filter(data,"private").should.eql(privatedata);
+					describe('for a GET', function(){
+						it('should get raw data without filter', function(){
+							booster.models.user.filter(data[0]).should.eql(publicdata[0]);
+						});
+						it('should get raw data with secret filter', function(){
+							booster.models.user.filter(data[0],"secret").should.eql(data[0]);
+						});
+						it('should get public data with public filter', function(){
+							booster.models.user.filter(data[0],"public").should.eql(publicdata[0]);
+						});
+						it('should get public and private data with private filter', function(){
+							booster.models.user.filter(data[0],"private").should.eql(privatedata[0]);
+						});
 					});
 				});
-				describe('for a GET', function(){
-					it('should get raw data without filter', function(){
-						booster.models.user.filter(data[0]).should.eql(publicdata[0]);
+				describe('via controllers', function(){
+					describe('for a LIST',function () {
+						it('should get public data only without _csview', function(done){
+							r.get('/user').expect(200,publicdata).end(done);
+						});
+						it('should get private data with _csview=private', function(done){
+							r.get('/user').query({_csview:"private"}).expect(200,privatedata).end(done);
+						});
+						it('should reject request with _csview=secret', function(done){
+							r.get('/user').query({_csview:"secret"}).expect(400).end(done);
+						});
 					});
-					it('should get raw data with secret filter', function(){
-						booster.models.user.filter(data[0],"secret").should.eql(data[0]);
+					describe('for a GET', function(){
+						it('should get public data only without _csview', function(done){
+							r.get('/user/1').expect(200,publicdata[0]).end(done);
+						});
+						it('should get private data with _csview=private', function(done){
+							r.get('/user/1').query({_csview:"private"}).expect(200,privatedata[0]).end(done);
+						});
+						it('should reject request with _csview=secret', function(done){
+							r.get('/user/1').query({_csview:"secret"}).expect(400).end(done);
+						});
 					});
-					it('should get public data with public filter', function(){
-						booster.models.user.filter(data[0],"public").should.eql(publicdata[0]);
-					});
-					it('should get public and private data with private filter', function(){
-						booster.models.user.filter(data[0],"private").should.eql(privatedata[0]);
-					});
+				  
 				});
 			});
 			describe('with validations', function(){

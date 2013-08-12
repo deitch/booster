@@ -490,11 +490,11 @@ By default, when you `get()` a model object using `model.get()` or `model.find()
 
 booster provides just this capability using the `visible` tag in the fields. booster supports three different levels of visibility:
 
-* public: always visible. For example, a username.
+* public: always visible. For example, a username. The default.
 * private: visible only to those who should have access (you determine that by your authorization scheme. Did I mention [cansecurity](https://github.com/deitch/cansecurity) ?) For example, a birthday.
 * secret: never sent off the server. For example, a password.
 
-Tagging a field as `public`, `private` or `secret` does nothing by itself. But if you `filter()` it, then you can control it.
+Tagging a field as `public`, `private` or `secret` does two things. First, if you `filter()` it, then you can control it.
 
 ````JavaScript
 user = req.booster.models.user;
@@ -522,6 +522,23 @@ user.get("10",function(err,res){
 });
 ````
 
+Second, the default controllers (**not** the models), filter it, unless you **explicitly** request it not to, using the query parameter `_csview`. Just set it to the value you want, e.g. `_csview=private` will show fields tagged `"private"` and those tagged `"public"` (or untagged, which is the same thing), but **not** those tagged `"secret"`. Not setting `_csview` (or setting it to `_csview=public` will show public fields only.
+
+Sending `_csview=secret` will be ignored!
+
+Controllers:
+````
+GET /user/:user // defaults to getting just public or untagged fields
+GET /user/:user&_csview=private // returns private and public fields
+````
+
+
+Models:
+````JavaScript
+req.booster.models.user.get("10",function(err,res){
+	// res contains all fields: private, public, secret or untagged
+});
+````
 
 
 
