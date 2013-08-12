@@ -488,7 +488,7 @@ Determining *who* has the rights to see such fields is the job of authorization;
 
 By default, when you `get()` a model object using `model.get()` or `model.find()`, it sends you all of the fields. In many cases, that is just fine. But what if you want to be able to filter those fields?
 
-booster provides just this capability using the `visibility` tag in the fields. booster supports three different levels of visibility:
+booster provides just this capability using the `visible` tag in the fields. booster supports three different levels of visibility:
 
 * public: always visible. For example, a username.
 * private: visible only to those who should have access (you determine that by your authorization scheme. Did I mention [cansecurity](https://github.com/deitch/cansecurity) ?) For example, a birthday.
@@ -592,7 +592,7 @@ module.export = {
 		"name":{required:true},
 		"fullname":{required:true},
 		"email":{required:true},
-		"password":{required:true,visibility:"secret"}
+		"password":{required:true,visible:"secret"}
 	},extend: {
 		checkPassword: function (check,valid,callback) {
 			bcrypt.compare(check,valid,function (err,res) {
