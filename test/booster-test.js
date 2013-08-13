@@ -462,8 +462,17 @@ describe('booster',function () {
 				booster.resource('singleunique'); // one unique field
 				booster.resource('doubleunique'); // two independent unique field
 				booster.resource('combounique'); // two independent unique field
+				booster.model('only'); // just a model, no route
 				r = request(app);
 				done();
+			});
+			describe('just a model', function(){
+			  it('should have the right "only" model', function(){
+			    should.exist(booster.models.only);
+			  });
+				it('should not have the route', function(done){
+				  r.get("/only").expect(404,done);
+				});
 			});
 			describe('basic fields',function () {
 				beforeEach(function(){

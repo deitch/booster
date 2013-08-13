@@ -834,6 +834,15 @@ OK, so what are the possible values for the messages indicating what was wrong w
 * * it returned an object with `valid.valid = false` and `valid.message` is defined and not `null`, the message will be the value of `valid.message`, e.g. , e.g. `{password: "some_custom_message"}`
 
 
+### Just Models?
+What if you, for some strange and odd reason (well, it cannot be *that* odd if we actually had demand to build it in here), you want *just* the models, but *not* the paths?
+
+Pretty easy, just do:
+
+    booster.model('post');
+		
+Done! You get validations, unique checking, all of the fun stuff, but no paths are created.
+
 
 ### Persistence
 Of course, the thing you want to do most with models is **persist** them - send them to a database and retrieve them from a database.
