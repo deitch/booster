@@ -335,17 +335,18 @@ Predefined validations are a single string or an array of strings that name vali
 
 The following validations exist as of this writing:
 
-* notblank: Is not null, undefined or a string made up entirely of whitespace
-* notpadded: Does not start or end with whitespace
-* email: Is a valid email pattern. Does *not* actually check the email address. For example, `fooasao12122323_12saos@gmail.com` is a valid email pattern, but I am pretty sure that the address is not in use.
-* integer: must be a valid integer
-* alphanumeric: must be a valid alphanumeric `a-zA-Z0-9`
-* string: must be a string
-* boolean: must be a boolean `true` or `false`
-* array: must be an array
-* integerArray: must be an array, every element of which must be a valid integer
-* stringArray; must be an array, every element of which must be a valid alphanumeric
-* unique: must be an array, no element of which may be repeated more than once
+* `notblank`: Is not null, undefined or a string made up entirely of whitespace
+* `notpadded`: Does not start or end with whitespace
+* `email`: Is a valid email pattern. Does *not* actually check the email address. For example, `fooasao12122323_12saos@gmail.com` is a valid email pattern, but I am pretty sure that the address is not in use.
+* `integer`: must be a valid integer
+* `alphanumeric`: must be a valid alphanumeric `a-zA-Z0-9`
+* `string`: must be a string
+* `boolean`: must be a boolean `true` or `false`
+* `array`: must be an array
+* `integerArray`: must be an array, every element of which must be a valid integer
+* `stringArray`; must be an array, every element of which must be a valid alphanumeric
+* `unique`: must be an array, no element of which may be repeated more than once
+* `minimum:<n>`: must be a string of minimum length `n`
 
 If two or more validations are provided in an array, then **all** of the validations must pass (AND).
 
@@ -489,6 +490,21 @@ On the other hand, if the user sends us a good password:
 Then the response from the validation function will be `{valid:true,value:"assde232shwsww1323"}`. The final record stored in the database will be:
 
     {id:"10",name:"john",password:"assde232shwsww1323"}
+
+
+##### Direct Access
+You can directly access the predefined validations as:
+
+````JavaScript
+var validator = require('booster').validator;
+````
+
+The validator is called with the item to validate and the validation:
+
+````JavaScript
+validator("abcd","email"); //false
+validator("abcd","alphanumeric"); // true
+````
 
 
 #### Visibility
