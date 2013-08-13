@@ -157,6 +157,23 @@ Which will give you
 
 If you include *both* `parent` *and* `api`, it will ignore `api`.
 
+#### Resource Property
+What if you don't want to rest a whole new resource, but have a separate property as part of a resource? For example, if you want to be able to `PUT /post/:post/title` and so change the title directly?
+
+It already works! Yes, that's right. If you already created the resource `booster.resource('post')`, then unless you created a nested resource of exactly the same name, `GET /post/:post/title` will get you the title from `/post/:post` Similarly, you can `PUT /post/:post/title` to change it. But, no you cannot `POST` or `PATCH` it; they don't make much sense.
+
+And you get all of the validations of models for free!
+
+What if you don't want this to happen? Just set it in the controller:
+
+````JavaScript
+module.exports = {
+	getProperty: null // disable `GET /post/:post/property`
+	setProperty: null // disable `PUT /post/:post/property`
+}
+````
+
+
 #### Root path
 If you want to have the resource called at the root path, you just need to pass a `root` option:
 

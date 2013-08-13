@@ -340,6 +340,9 @@ describe('booster',function () {
 				r = request(app);
 				done();
 			});
+			beforeEach(function () {
+				db.reset();
+			});
 			it('should return 404 when override LIST to null',function (done) {
 				r.get('/post').expect(404).end(done);
 			});
@@ -374,6 +377,24 @@ describe('booster',function () {
 			it('should 404 DELETE for absurd ID',function (done) {
 				r.del('/post/12345').expect(404).end(done);
 			});
+			it('should map GET for existing property', function(done){
+			  r.get('/post/1/title').expect(200,"foo",done);
+			});
+			it('should return 404 for GET for non-existent property', function(done){
+			  r.get('/post/1/nothinghere').expect(404,done);
+			});
+			it('should accept PUT for non-existent property', function(done){
+				async.waterfall([
+					function (cb) {r.put('/post/1/nothinghere').type("text").send("foo").expect(200,cb);},
+					function (res,cb) {r.get('/post/1/nothinghere').expect(200,"foo",cb);}
+				],done);
+			});
+			it('should accept PUT for existing property', function(done){
+				async.waterfall([
+					function (cb) {r.put('/post/1/title').type('text').send("newtitle").expect(200,cb);},
+					function (res,cb) {r.get('/post/1/title').expect(200,"newtitle",cb);}
+				],done);
+			});
 		});
 		describe('with models',function () {
 			before(function (done) {
@@ -394,6 +415,9 @@ describe('booster',function () {
 				done();
 			});
 			describe('basic fields',function () {
+				beforeEach(function(){
+				  db.reset();
+				});
 				it('should fail to LIST with invalid record',function (done) {
 					r.get('/post').expect(400,[{other:"unknownfield"}]).end(done);
 				});
@@ -460,6 +484,21 @@ describe('booster',function () {
 					var newpost = {content:"foo content"};
 					r.post('/post').send(newpost).expect(400,{title:"required"},done);
 				});
+				it('should map GET for existing property', function(done){
+				  r.get('/post/1/title').expect(200,"foo",done);
+				});
+				it('should return 404 for GET for non-existent property', function(done){
+				  r.get('/post/1/nothinghere').expect(404,done);
+				});
+				it('should reject PUT for non-existent property', function(done){
+					r.put('/post/1/nothinghere').type("text").send("foo").expect(404,done);
+				});
+				it('should accept PUT for existing property', function(done){
+					async.waterfall([
+						function (cb) {r.put('/post/1/title').type('text').send("newtitle").expect(200,cb);},
+						function (res,cb) {r.get('/post/1/title').expect(200,"newtitle",cb);}
+					],done);
+				});				
 			});
 			describe('with alternate id',function () {
 				it('should map LIST',function (done) {
