@@ -414,12 +414,13 @@ module.exports = {
 }
 ````
 
-The validation function provides three parameters:
+The validation function provides several parameters:
 
 * name: name of the model class you are validating, e.g. 'user' or 'post', helpful for generic functions.
 * field: name of the field you are validating, helpful for generic functions. 
-* mode: what we were doing to get this mode for validating, helpful if you need to validate some things on save, but not load. One of: `find` `get` `update` `create` (which are the exact `db` methods. Smart, eh?)
+* mode: what we were doing to get this mode for validating, helpful if you need to validate some things on save, but not load. One of: `find` `get` `update` `create` 'patch`` (which are the exact `db` methods. Smart, eh?)
 * attrs: the JavaScript object you are validating.
+* callback: OPTIONAL. Async callback.
 
 And what should the validation function return? It can return one of three things:
 
@@ -432,6 +433,15 @@ The returned object should have the following properties:
 * valid: `true` or `false` if the validation passed
 * value: if this exists, then the value of this key on the object *should be changed* to the provided value before moving on. See the example below.
 * message: if the validation failed (`valid === false`), then this is the message to be passed
+
+###### Sync/Async
+Note that a validation function can be synchronous or asynchronous. 
+
+* Sync: If the arity (number of arguments) of a validation function is **four**, then it is treated as *synchronous*, and the validation return is the *return value of the function*.
+* Async: If the arity of a validation function is **five**, then it is treated as *asynchronous*, and the fifth argument is the callback function. The callback function should have one argument exactly, the `true/false/object` that would be returned.
+
+Note that sync is likely to be deprecated in future versions.
+
 
 The classic example for this is a `password` field. Let's say the user updated their password, we don't just want to validate the password as alphanumeric or existing, we want to do two special things:
 

@@ -386,6 +386,7 @@ describe('booster',function () {
 				booster.resource('normal');			// data remapped to 'special', rest is the same
 				booster.resource('user');				// 'user' data with private field email and secret field password
 				booster.resource('validated');		// 'validated' data with four validated fields: 'email' (must be 'email'), 'alpha' (must be 'alphanumeric'), 'abc' (function requiring 'abc' and returning true/false) 'def' (function requiring 'def' and returning {valid:true, value:"fed"} if 'def', else {valid:false, message: "not def"} if !'def')
+				booster.resource('avalidated');  // just like validated, but uses async validation functions
 				booster.resource('singleunique'); // one unique field
 				booster.resource('doubleunique'); // two independent unique field
 				booster.resource('combounique'); // two independent unique field
@@ -606,76 +607,155 @@ describe('booster',function () {
 				});
 			});
 			describe('with validations', function(){
-				var name = "validated", table = name;
-				it('should fail to LIST with invalid record',function (done) {
-					r.get('/'+name).expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
+				var name, table;
+				describe('synchronous', function(){
+				  before(function(){
+				    table = name = "validated";
+				  });
+					it('should fail to LIST with invalid record',function (done) {
+						r.get('/'+name).expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
+					});
+					it('should successfully GET valid record',function (done) {
+						r.get('/'+name+'/1').expect(200,db.data(table,0)).end(done);
+					});
+					it('should reject GET record with invalid fields',function (done) {
+						r.get('/'+name+'/2').expect(400,{email:"email",alpha:"alphanumeric",abc:"invalid"}).end(done);
+					});
+					it('should accept PUT with valid fields',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({alpha:"bigAl"}).expect(200,cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),{alpha:"bigAl"}),cb);}
+						],done);
+					});
+					it('should reject PUT with one invalid field',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({alpha:"not ! alpha"}).expect(400,{alpha:"alphanumeric"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should reject PUT with multiple invalid field',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({alpha:"not ! alpha",email:"a@b"}).expect(400,{email:"email",alpha:"alphanumeric"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should give correct response reject for PUT with validation function and boolean response',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({abc:"cba"}).expect(400,{abc:"invalid"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should give correct response reject for PUT with validation function and object response',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({def:"fed"}).expect(400,{def:"not def"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should accept PUT with valid fields and validation function with transformation',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({def:"def"}).expect(200,cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),{def:"fed"}),cb);}
+						],done);
+					});
+					it('should accept POST with valid fields and transformation',function (done) {
+						var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"def"};
+						async.waterfall([
+							function (cb) {r.post('/'+name).send(newpost).expect(201,cb);},
+							// remember that the "def" field, when valid, gets transformed to "fed"
+							function (res,cb) {r.get('/'+name+'/'+res.text).expect(200,_.extend({},newpost,{id:res.text,def:"fed"}),cb);}
+						],done);
+					});
+					it('should reject POST with single invalid field',function (done) {
+						var newpost = {email:"a@b",alpha:"abc123",abc:"abc",def:"def"};
+						r.post('/'+name).send(newpost).expect(400,{email: "email"},done);
+					});			  
+					it('should reject POST with multiple invalid fields',function (done) {
+						var newpost = {email:"a@b",alpha:"! alpha",abc:"abc",def:"def"};
+						r.post('/'+name).send(newpost).expect(400,{email: "email",alpha:"alphanumeric"},done);
+					});
+					it('should give correct response reject for POST with validation function and boolean response',function (done) {
+						var newpost = {email:"a@b.com",alpha:"abc123",abc:"cba",def:"def"};
+						r.post('/'+name).send(newpost).expect(400,{abc:"invalid"},done);
+					});
+					it('should give correct response reject for POST with validation function and object response',function (done) {
+						var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"fed"};
+						r.post('/'+name).send(newpost).expect(400,{def:"not def"},done);
+					});			
 				});
-				it('should successfully GET valid record',function (done) {
-					r.get('/'+name+'/1').expect(200,db.data(table,0)).end(done);
+				describe('asynchronous', function(){
+				  before(function(){
+				    table = name = "avalidated";
+				  });
+					it('should fail to LIST with invalid record',function (done) {
+						r.get('/'+name).expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
+					});
+					it('should successfully GET valid record',function (done) {
+						r.get('/'+name+'/1').expect(200,db.data(table,0)).end(done);
+					});
+					it('should reject GET record with invalid fields',function (done) {
+						r.get('/'+name+'/2').expect(400,{email:"email",alpha:"alphanumeric",abc:"invalid"}).end(done);
+					});
+					it('should accept PUT with valid fields',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({alpha:"bigAl"}).expect(200,cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),{alpha:"bigAl"}),cb);}
+						],done);
+					});
+					it('should reject PUT with one invalid field',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({alpha:"not ! alpha"}).expect(400,{alpha:"alphanumeric"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should reject PUT with multiple invalid field',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({alpha:"not ! alpha",email:"a@b"}).expect(400,{email:"email",alpha:"alphanumeric"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should give correct response reject for PUT with validation function and boolean response',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({abc:"cba"}).expect(400,{abc:"invalid"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should give correct response reject for PUT with validation function and object response',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({def:"fed"}).expect(400,{def:"not def"},cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
+						],done);
+					});
+					it('should accept PUT with valid fields and validation function with transformation',function (done) {
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send({def:"def"}).expect(200,cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),{def:"fed"}),cb);}
+						],done);
+					});
+					it('should accept POST with valid fields and transformation',function (done) {
+						var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"def"};
+						async.waterfall([
+							function (cb) {r.post('/'+name).send(newpost).expect(201,cb);},
+							// remember that the "def" field, when valid, gets transformed to "fed"
+							function (res,cb) {r.get('/'+name+'/'+res.text).expect(200,_.extend({},newpost,{id:res.text,def:"fed"}),cb);}
+						],done);
+					});
+					it('should reject POST with single invalid field',function (done) {
+						var newpost = {email:"a@b",alpha:"abc123",abc:"abc",def:"def"};
+						r.post('/'+name).send(newpost).expect(400,{email: "email"},done);
+					});			  
+					it('should reject POST with multiple invalid fields',function (done) {
+						var newpost = {email:"a@b",alpha:"! alpha",abc:"abc",def:"def"};
+						r.post('/'+name).send(newpost).expect(400,{email: "email",alpha:"alphanumeric"},done);
+					});
+					it('should give correct response reject for POST with validation function and boolean response',function (done) {
+						var newpost = {email:"a@b.com",alpha:"abc123",abc:"cba",def:"def"};
+						r.post('/'+name).send(newpost).expect(400,{abc:"invalid"},done);
+					});
+					it('should give correct response reject for POST with validation function and object response',function (done) {
+						var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"fed"};
+						r.post('/'+name).send(newpost).expect(400,{def:"not def"},done);
+					});	
 				});
-				it('should reject GET record with invalid fields',function (done) {
-					r.get('/'+name+'/2').expect(400,{email:"email",alpha:"alphanumeric",abc:"invalid"}).end(done);
-				});
-				it('should accept PUT with valid fields',function (done) {
-					async.series([
-						function (cb) {r.put('/'+name+'/1').send({alpha:"bigAl"}).expect(200,cb);},
-						function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),{alpha:"bigAl"}),cb);}
-					],done);
-				});
-				it('should reject PUT with one invalid field',function (done) {
-					async.series([
-						function (cb) {r.put('/'+name+'/1').send({alpha:"not ! alpha"}).expect(400,{alpha:"alphanumeric"},cb);},
-						function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
-					],done);
-				});
-				it('should reject PUT with multiple invalid field',function (done) {
-					async.series([
-						function (cb) {r.put('/'+name+'/1').send({alpha:"not ! alpha",email:"a@b"}).expect(400,{email:"email",alpha:"alphanumeric"},cb);},
-						function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
-					],done);
-				});
-				it('should give correct response reject for PUT with validation function and boolean response',function (done) {
-					async.series([
-						function (cb) {r.put('/'+name+'/1').send({abc:"cba"}).expect(400,{abc:"invalid"},cb);},
-						function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
-					],done);
-				});
-				it('should give correct response reject for PUT with validation function and object response',function (done) {
-					async.series([
-						function (cb) {r.put('/'+name+'/1').send({def:"fed"}).expect(400,{def:"not def"},cb);},
-						function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
-					],done);
-				});
-				it('should accept PUT with valid fields and validation function with transformation',function (done) {
-					async.series([
-						function (cb) {r.put('/'+name+'/1').send({def:"def"}).expect(200,cb);},
-						function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),{def:"fed"}),cb);}
-					],done);
-				});
-				it('should accept POST with valid fields and transformation',function (done) {
-					var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"def"};
-					async.waterfall([
-						function (cb) {r.post('/'+name).send(newpost).expect(201,cb);},
-						// remember that the "def" field, when valid, gets transformed to "fed"
-						function (res,cb) {r.get('/'+name+'/'+res.text).expect(200,_.extend({},newpost,{id:res.text,def:"fed"}),cb);}
-					],done);
-				});
-				it('should reject POST with single invalid field',function (done) {
-					var newpost = {email:"a@b",alpha:"abc123",abc:"abc",def:"def"};
-					r.post('/'+name).send(newpost).expect(400,{email: "email"},done);
-				});			  
-				it('should reject POST with multiple invalid fields',function (done) {
-					var newpost = {email:"a@b",alpha:"! alpha",abc:"abc",def:"def"};
-					r.post('/'+name).send(newpost).expect(400,{email: "email",alpha:"alphanumeric"},done);
-				});
-				it('should give correct response reject for POST with validation function and boolean response',function (done) {
-					var newpost = {email:"a@b.com",alpha:"abc123",abc:"cba",def:"def"};
-					r.post('/'+name).send(newpost).expect(400,{abc:"invalid"},done);
-				});
-				it('should give correct response reject for POST with validation function and object response',function (done) {
-					var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"fed"};
-					r.post('/'+name).send(newpost).expect(400,{def:"not def"},done);
-				});				 
 			});
 			describe('with unique fields', function(){
 			  describe('single unique field', function(){
