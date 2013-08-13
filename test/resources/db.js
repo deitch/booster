@@ -6,6 +6,10 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	  {id:"3",title:"bar",content:"phd"},
 	  {id:"4",title:"bar",content:"phd",other:"other field"}
 	],
+	property: [
+	  {id:"1",title:"foo",content:"Lots of it"},
+	  {id:"2",title:"foobar",content:"Even more"}
+	],
 	comment: [
 		{id:"1",post:"1",comment:"First comment on 1st post"},
 		{id:"2",post:"1",comment:"Second comment on 1st post"},

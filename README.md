@@ -173,6 +173,73 @@ module.exports = {
 }
 ````
 
+#### Special Resource Property
+OK, so the above works great if you want `/post/1/title` to map to `title` of post 1, or `/post/10/author` to map to `author` of post 10. But what if you want all of the above **and** you want to map some special properties to their own handlers. For example, if a user is:
+
+    {id:"1",firstname:"john",lastname:"smith"}
+
+so you want the following to work (and hey, booster *already* said you get it for free):
+
+    GET /user/1/firstname -> "john"
+		GET /user/1/lastname -> "smith"
+		GET /user/1 -> {id:"1",firstname:"john",lastname:"smith"}
+
+But you *also* want to be able to do:
+
+    GET /user/1/groups -> [10,12,2678]
+		
+In other words, that special property `groups` is really not a property of a `user` object, but has its own logic. On the other hand, it behaves mightily like a property: it uses `PUT` and `GET`, and has meaning only in the context of a specific `user`. It isn't a first-class resource (the `group` and the `user` are), but that array of group IDs comes from somewhere else!
+
+You know that I'm going to say, "it's easy!", right?
+
+All you need to do is put in place that special controller file, and add `properties` to it.
+
+````JavaScript
+module.exports = {
+	properties: {
+		groups: {
+			get: function(req,res,next) {
+				// do all of your get logic here
+				// LOGIC A
+			},
+			set: function(req,res,next) {
+				// do all of your set logic here
+				// LOGIC B
+			}
+		},
+		roles: {
+			get: function(req,res,next) {
+				// LOGIC C
+			}
+		},
+		strange: {
+			set: function(req,res,next) {
+				// LOGIC D
+			}
+		}
+	}
+};
+````
+
+So when booster hits a property of a resource, like `/user/1/someProperty`, it says, if *all* of the following is true, use your function, else treat it just like a regular property:
+
+    (controller file exists) AND 
+		  (controller has "properties" key) AND 
+			  ("properties" key has appropriate property name) AND 
+				  (  (property name has "get" key as function if request was GET) OR 
+					   (property name has "get" key as function if request was PUT)  )
+
+
+Going back to the above example, here is what will happen with each type of request and why:
+
+    GET /user/1/title -> get the property "title" of the object; properties.title not defined
+    GET /user/1/groups -> use function for LOGIC A; properties.groups.get defined
+    PUT /user/1/groups -> use function for LOGIC B; properties.groups.set defined
+    GET /user/1/roles -> use function for LOGIC C; properties.roles.get defined
+    PUT /user/1/roles -> get property "roles" of the object; properties.roles.set not defined
+    GET /user/1/strange -> get property "strange" of the object; properties.strange.get not defined
+    PUT /user/1/strange -> use function for LOGIC D; properties.strange.set defined
+
 
 #### Root path
 If you want to have the resource called at the root path, you just need to pass a `root` option:

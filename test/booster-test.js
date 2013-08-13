@@ -337,63 +337,114 @@ describe('booster',function () {
 				app.use(express.bodyParser());
 				booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers'});
 				booster.resource('post');
+				booster.resource('property');
 				r = request(app);
 				done();
 			});
 			beforeEach(function () {
 				db.reset();
 			});
-			it('should return 404 when override LIST to null',function (done) {
-				r.get('/post').expect(404).end(done);
+			describe('basic controller', function(){
+				it('should return 404 when override LIST to null',function (done) {
+					r.get('/post').expect(404).end(done);
+				});
+				it('should map GET to default when no override',function (done) {
+					r.get('/post/1').expect(200,db.data("post",0)).end(done);
+				});
+				it('should return 404 per default when GET with no override for absurd ID of post',function (done) {
+					r.get('/post/12345').expect(404).end(done);
+				});
+				it('should map PUT to override which changes nothing',function (done) {
+					async.series([
+						function (cb) {r.put('/post/1').send({title:"nowfoo"}).expect(200,"You asked to update 1",cb);},
+						function (cb) {r.get('/post/1').expect(200,db.data("post",0),cb);}
+					],done);
+				});
+				it('should map PUT to override which changes nothing for absurd ID',function (done) {
+					r.put('/post/12345').send({title:"nowfoo"}).expect(200,"You asked to update 12345").end(done);
+				});
+				it('should map POST to default when no override',function (done) {
+					var newPost = {title:"new post",content:"messy"};
+					async.waterfall([
+						function (cb) {r.post('/post').send(newPost).expect(201,cb);},
+						function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
+					],done);
+				});
+				it('should map DELETE to default when no override',function (done) {
+					async.series([
+						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(404,cb);}
+					],done);
+				});			
+				it('should 404 DELETE for absurd ID',function (done) {
+					r.del('/post/12345').expect(404).end(done);
+				});
+				it('should map GET for existing property', function(done){
+				  r.get('/post/1/title').expect(200,"foo",done);
+				});
+				it('should return 404 for GET for non-existent property', function(done){
+				  r.get('/post/1/nothinghere').expect(404,done);
+				});
+				it('should accept PUT for non-existent property', function(done){
+					async.waterfall([
+						function (cb) {r.put('/post/1/nothinghere').type("text").send("foo").expect(200,cb);},
+						function (res,cb) {r.get('/post/1/nothinghere').expect(200,"foo",cb);}
+					],done);
+				});
+				it('should accept PUT for existing property', function(done){
+					async.waterfall([
+						function (cb) {r.put('/post/1/title').type('text').send("newtitle").expect(200,cb);},
+						function (res,cb) {r.get('/post/1/title').expect(200,"newtitle",cb);}
+					],done);
+				});			  
 			});
-			it('should map GET to default when no override',function (done) {
-				r.get('/post/1').expect(200,db.data("post",0)).end(done);
-			});
-			it('should return 404 per default when GET with no override for absurd ID of post',function (done) {
-				r.get('/post/12345').expect(404).end(done);
-			});
-			it('should map PUT to override which changes nothing',function (done) {
-				async.series([
-					function (cb) {r.put('/post/1').send({title:"nowfoo"}).expect(200,"You asked to update 1",cb);},
-					function (cb) {r.get('/post/1').expect(200,db.data("post",0),cb);}
-				],done);
-			});
-			it('should map PUT to override which changes nothing for absurd ID',function (done) {
-				r.put('/post/12345').send({title:"nowfoo"}).expect(200,"You asked to update 12345").end(done);
-			});
-			it('should map POST to default when no override',function (done) {
-				var newPost = {title:"new post",content:"messy"};
-				async.waterfall([
-					function (cb) {r.post('/post').send(newPost).expect(201,cb);},
-					function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
-				],done);
-			});
-			it('should map DELETE to default when no override',function (done) {
-				async.series([
-					function (cb) {r.del('/post/1').expect(200,cb);},
-					function (cb) {r.get('/post/1').expect(404,cb);}
-				],done);
-			});			
-			it('should 404 DELETE for absurd ID',function (done) {
-				r.del('/post/12345').expect(404).end(done);
-			});
-			it('should map GET for existing property', function(done){
-			  r.get('/post/1/title').expect(200,"foo",done);
-			});
-			it('should return 404 for GET for non-existent property', function(done){
-			  r.get('/post/1/nothinghere').expect(404,done);
-			});
-			it('should accept PUT for non-existent property', function(done){
-				async.waterfall([
-					function (cb) {r.put('/post/1/nothinghere').type("text").send("foo").expect(200,cb);},
-					function (res,cb) {r.get('/post/1/nothinghere').expect(200,"foo",cb);}
-				],done);
-			});
-			it('should accept PUT for existing property', function(done){
-				async.waterfall([
-					function (cb) {r.put('/post/1/title').type('text').send("newtitle").expect(200,cb);},
-					function (res,cb) {r.get('/post/1/title').expect(200,"newtitle",cb);}
-				],done);
+			describe('properties override', function(){
+				it('should map GET for existing property', function(done){
+				  r.get('/property/1/title').expect(200,"foo",done);
+				});
+				it('should return 404 for GET for non-existent property', function(done){
+				  r.get('/property/1/nothinghere').expect(404,done);
+				});
+				it('should accept PUT for non-existent property', function(done){
+					async.waterfall([
+						function (cb) {r.put('/property/1/nothinghere').type("text").send("foo").expect(200,cb);},
+						function (res,cb) {r.get('/property/1/nothinghere').expect(200,"foo",cb);}
+					],done);
+				});
+				it('should accept PUT for existing property', function(done){
+					async.waterfall([
+						function (cb) {r.put('/property/1/title').type('text').send("newtitle").expect(200,cb);},
+						function (res,cb) {r.get('/property/1/title').expect(200,"newtitle",cb);}
+					],done);
+				});
+				it('should override GET for defined property', function(done){
+				  r.get('/property/1/groups').expect(200,["1","2"],done);
+				});
+				it('should override PUT for defined property', function(done){
+					async.series([
+						function (cb) {r.put('/property/1/groups').type("json").send(["5","6"]).expect(200,cb);},
+						function (cb) {r.get('/property/1/groups').expect(200,["5","6"],cb);}
+					],done);
+				});
+				it('should override GET for defined property with GET only', function(done){
+				  r.get('/property/1/roles').expect(200,["A","B"],done);
+				});
+				it('should default for PUT for defined property without PUT', function(done){
+					async.series([
+						function(cb){r.put('/property/1/roles').type("json").send(["X","Y"]).expect(200,cb);},
+						function(cb){r.get('/property/1/roles').expect(200,["A","B"],cb);},
+					],done);
+				  
+				});
+				it('should default GET for defined property without GET only', function(done){
+				  r.get('/property/1/strange').expect(404,done);
+				});
+				it('should override PUT for defined property with PUT only', function(done){
+					async.series([
+						function (cb) {r.put('/property/1/strange').type("json").send(["5","6"]).expect(200,cb);},
+						function (cb) {r.get('/property/1/strange').expect(404,cb);}
+					],done);
+				});
 			});
 		});
 		describe('with models',function () {
