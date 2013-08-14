@@ -338,10 +338,10 @@ And what if you want to pass some parameters to controller functions? For exampl
 
 Well, you could `require()` it in each controller, but that really is rather messy, requires multiple configurations and calls (not very [DRY](http://en.wikipedia.org/wiki/Don't_repeat_yourself)), and would work much better if you could just inject the dependency.
 
-booster supports that type of dependency injection. If you have configuration parameters you want available to your controllers, they are available, in true express style, on the `req` object as `req.booster.param`. You inject them by using the `param` property when calling `mvc.init()`
+booster supports that type of dependency injection. If you have configuration parameters you want available to your controllers, they are available, in true express style, on the `req` object as `req.booster.param`. You inject them by using the `param` property when calling `booster.init()`
 
 ````JavaScript
-mvc.init({sendmail:fn})
+booster.init({param:{sendmail:fn}});
 
 index: function(req,res,next) {
 	req.booster.param.sendmail();
@@ -349,7 +349,22 @@ index: function(req,res,next) {
 }
 ````
 
-#### Global 'before' option for controllers
+#### Filters
+Now, what if you don't want to entirely override the controller function, but perhaps put in a filter. You could easily just do:
+
+````JavaScript
+module.exports = {
+	show: function(req,res,next) {
+		// handle everything here
+	}
+}
+````
+
+But you didn't want to have to recreate all of the model calls, error handling, all of the benefits of the default controller. You really just wanted to inject some middleware *prior* to the default `show()` being called!
+
+Booster gives you two really good options for this: `all` global filter, and `filters` for individual ones.
+
+##### Global 'before' option for controllers
 If you are writing controller method overrides, and you want a function that will always be executed *before* the usual index/show/update/create/destroy, just add an `all` function.
 
 ````JavaScript
@@ -360,6 +375,54 @@ module.exports = {
 	}
 };
 ````
+
+
+
+##### Individual filters
+If you want an individual filter to run on only one specific routing, e.g. `user.index()` or `user.show()`, you do the following:
+
+````JavaScript
+module.exports = {
+	filter: {
+		show: function(res,res,next) {
+			// do your filtering here
+			// succeeded?
+			next();
+			// failed?
+			res.send(400);
+			// or else
+			next(error);
+		}
+	}
+};
+````
+
+Of course, you will ask, why the split language? Why is `all` a first-level property, but each other filter is below the `filter` property? Well, all can go in either space. Both of the following are valid:
+
+````JavaScript
+module.exports = {
+	// this one will get executed first
+	all: function(res,res,next) {
+		next();
+	},
+	filter: {
+		// then this one
+		all: function(res,res,next) {
+			next();
+		},
+		// and this one last
+		show: function(req,res,next) {
+		}
+	}
+};
+````
+
+The order of execution is:
+
+1. `all()`
+2. `filter.all()`
+3. `filter.show()` (or any other specific one)
+
 
 And what about all of our models? What do we do with them?
 

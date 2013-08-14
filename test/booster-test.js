@@ -338,6 +338,7 @@ describe('booster',function () {
 				booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers'});
 				booster.resource('post');
 				booster.resource('property');
+				booster.resource('filter');
 				r = request(app);
 				done();
 			});
@@ -444,6 +445,30 @@ describe('booster',function () {
 						function (cb) {r.put('/property/1/strange').type("json").send(["5","6"]).expect(200,cb);},
 						function (cb) {r.get('/property/1/strange').expect(404,cb);}
 					],done);
+				});
+			});
+			describe('filters', function(){
+			  it('should allow through request without block', function(done){
+			    r.get('/filter/1').expect(200,db.data("filter",0),done);
+			  });
+			  it('should block the global one', function(done){
+			    r.get('/filter/1').query({all:"all"}).expect(403,"all",done);
+			  });
+			  it('should block the filter.global one', function(done){
+			    r.get('/filter/1').query({"filter.all":"filter.all"}).expect(403,"filter.all",done);
+			  });
+			  it('should block the show one', function(done){
+			    r.get('/filter/1').query({"filter.show":"filter.show"}).expect(403,"filter.show",done);
+			  });
+				describe('in order', function(){
+				  it('should use global with all three', function(done){
+						var q = {"all":"all","filter.all":"filter.all","filter.show":"filter.show"};
+				    r.get('/filter/1').query(q).expect(403,"all",done);
+				  });
+				  it('should use filter.global with last two', function(done){
+						var q = {"filter.all":"filter.all","filter.show":"filter.show"};
+				    r.get('/filter/1').query(q).expect(403,"filter.all",done);
+				  });
 				});
 			});
 		});
