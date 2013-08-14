@@ -141,6 +141,21 @@ Which will give you
     DELETE    /api/comment/:comment    comment#destroy()
 
 
+If you want **all** of your routes to have a base path, instead of having to do:
+
+    booster.resource('post',{base:'/api'});
+    booster.resource('comment',{base:'/api'});
+    booster.resource('user',{base:'/api'});
+		
+You could simply do:
+
+    booster.init({base:'/api'});
+    booster.resource('post');
+    booster.resource('comment');
+    booster.resource('user');
+
+If you *do* specify a `base` on a specific resource *after* already specifying the global `base` in `init()`, the resource-specific `base` will override the global one.
+
 #### Nested Resource
 If you want to nest a resource, like in the example above, you just need to pass a `parent` option:
 
