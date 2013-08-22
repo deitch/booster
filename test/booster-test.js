@@ -1,8 +1,13 @@
 /*global before,beforeEach,after,describe,it */
-/*jslint node:true */
+/*jslint node:true, debug:true, nomen:true */
 var express = require('express'), _ = require('lodash'), request = require('supertest'), booster = require('../lib/booster'), 
 async = require('async'), should = require('should'), db = require('./resources/db'), path;
 
+
+// call the debugger in case we are in debug mode
+before(function () {
+	debugger;
+});
 
 // call the debugger in case we are in debug mode
 describe('booster',function () {
@@ -394,6 +399,7 @@ describe('booster',function () {
 				booster.resource('post');
 				booster.resource('property');
 				booster.resource('filter');
+				booster.resource('processor');
 				r = request(app);
 				done();
 			});
@@ -524,6 +530,20 @@ describe('booster',function () {
 						var q = {"filter.all":"filter.all","filter.show":"filter.show"};
 				    r.get('/filter/1').query(q).expect(403,"filter.all",done);
 				  });
+				});
+			});
+			describe('post processors', function(){
+				it('should run the post.all()', function(done){
+				  r.get('/processor/1').query({ptype:"all"}).expect("processor","all").expect(200,done);
+				});
+				it('should run the specific post.create()', function(done){
+				  r.post('/processor').query({ptype:"create"}).expect("processor","create").expect(201,done);
+				});
+				it('should change the response for PUT', function(done){
+				  r.put('/processor/1').send({special:"data"}).expect(400,"changed",done);
+				});
+				it('should run post.all() before post.create()', function(done){
+				  r.post('/processor').query({ptype:"both"}).expect("processor",'["all","create"]').expect(201,done);
 				});
 			});
 		});
@@ -1063,7 +1083,7 @@ describe('booster',function () {
 			done();
 		});
 	  it('should have access to req.booster on non-booster route', function(done){
-	    r.get('/booster').expect(200,{param:{},models:{post:{}}},done);
+	    r.get('/booster').expect(200,{param:{},models:{post:{}},controllers:{post:{}}},done);
 	  });
 	});
 });

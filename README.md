@@ -439,6 +439,45 @@ The order of execution is:
 3. `filter.show()` (or any other specific one)
 
 
+#### Post-Processors
+A common use case is one where you want to do some post-processing *before* sending the response back to the client, for example, if you `create` with `POST /users` but before sending back that successful `201`, you want to set up some activation stuff, perhaps using [activator](http://github.com/deitch/activator). Like with filters, you *could* override a controller method, like `create`, but then you lose all of the benefits.
+
+The solution here is post-processors, methods that are called *after* a successful controller method, but *before* sending back the `200` or `201`. Does booster support post-processors? Of course it does! (why are you no surprised?)
+
+Like filters, post-processors are added as properties of the controller object.
+
+````JavaScript
+module.exports = {
+	// use "post" to indicate post-processors
+	post: {
+		all: function(req,res,next) {},  // "all" will always be called
+		create: function(req,res,next) {}, // "create" will be called after each "create"
+	}
+};
+````
+
+The order of execution is:
+
+1. `post.all()`
+2. `post.create()` (or any other specific one) 
+
+Post-processor signatures look slightly different than most handlers, since they need to know what the result of the normal controller method was.
+
+````JavaScript
+function(req,res,next,status,body) {
+};
+````
+
+`req`, `res`, `next` are the normal arguments to a route handler. `status` is the status code and `body` is the body returned by the controller method, if any. 
+
+Your post-processor filter has 3 options:
+
+* Do nothing: if it does not alternate the response at all, just call `next()` as usual.
+* Error: as usual, you can always call `next(error)` to invoke expressjs's error handler.
+* Change the response: if it want to alternate the response, call `res.send()` or anything else. 
+
+
+
 And what about all of our models? What do we do with them?
 
 
