@@ -296,8 +296,11 @@ describe('booster',function () {
 				it('should map LIST',function (done) {
 					r.get(path).expect(200,db.data("post")).end(done);
 				});
-				it('should map GET',function (done) {
+				it('should map GET for single item',function (done) {
 					r.get(path+'/1').expect(200,db.data("post",0)).end(done);
+				});
+				it('should map GET for multiple items',function (done) {
+					r.get(path+'/1,2').expect(200,[db.data("post",0),db.data("post",1)]).end(done);
 				});
 				it('should return 404 when GET for absurd ID of post',function (done) {
 					r.get(path+'/12345').expect(404).end(done);

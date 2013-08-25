@@ -83,8 +83,23 @@ reset();
 
 module.exports = {
 	get: function (name,key,callback) {
-		var idx = findById(name,key);
-		callback(null,data[name][idx]);
+		var d = [], ret;
+		// might have an array of keys
+		_.each([].concat(key),function (k) {
+			d.push(data[name][findById(name,k)]);
+		});
+		switch(d.length) {
+			case 0:
+				ret = null;
+				break;
+			case 1:
+				ret = d[0];
+				break;
+			default:
+				ret = d;
+				break;
+		}
+		callback(null,ret);
 		return(this);
 		
 	},
