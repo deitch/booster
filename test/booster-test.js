@@ -588,7 +588,7 @@ describe('booster',function () {
 					r.get('/post/12345').expect(404).end(done);
 				});				
 				it('should reject GET record with field not in defined fields',function (done) {
-					r.get('/post/4').expect(400,{ other: 'unknownfield' }).end(done);
+					r.get('/post/4').expect(400,[{ other: 'unknownfield' }]).end(done);
 				});
 				it('should accept PUT with valid fields',function (done) {
 					var rec = {title:"nowfoo",content:"newcontent"};
@@ -818,7 +818,7 @@ describe('booster',function () {
 						r.get('/'+name+'/1').expect(200,db.data(table,0)).end(done);
 					});
 					it('should reject GET record with invalid fields',function (done) {
-						r.get('/'+name+'/2').expect(400,{email:"email",alpha:"alphanumeric",abc:"invalid"}).end(done);
+						r.get('/'+name+'/2').expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
 					});
 					it('should accept PUT with valid fields',function (done) {
 						async.series([
@@ -892,7 +892,7 @@ describe('booster',function () {
 						r.get('/'+name+'/1').expect(200,db.data(table,0)).end(done);
 					});
 					it('should reject GET record with invalid fields',function (done) {
-						r.get('/'+name+'/2').expect(400,{email:"email",alpha:"alphanumeric",abc:"invalid"}).end(done);
+						r.get('/'+name+'/2').expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
 					});
 					it('should accept PUT with valid fields',function (done) {
 						async.series([
