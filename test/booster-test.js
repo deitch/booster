@@ -882,7 +882,15 @@ describe('booster',function () {
 					it('should give correct response reject for POST with validation function and object response',function (done) {
 						var newpost = {email:"a@b.com",alpha:"abc123",abc:"abc",def:"fed"};
 						r.post('/'+name).send(newpost).expect(400,{def:"not def"},done);
-					});			
+					});
+					it('should accept PUT with valid fields and other optional data',function (done) {
+						// optional alpha and email fields should not be returned after PUT
+						var newinfo = {def:"def",abc:"abc"}, oldinfo = db.data(table,0);
+						async.series([
+							function (cb) {r.put('/'+name+'/1').send(newinfo).expect(200,cb);},
+							function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},newinfo,{def:"fed",id:oldinfo.id}),cb);}
+						],done);
+					});
 				});
 				describe('asynchronous', function(){
 				  before(function(){
