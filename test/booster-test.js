@@ -347,51 +347,136 @@ describe('booster',function () {
 				booster.init({db:db,app:app});
 				booster.resource('post');
 				booster.resource('comment',{parent:'post'});
+				booster.resource('nestRequire',{parent:'post',parentProperty:true});
+				booster.resource('nestOptional',{parent:'post',parentProperty:true,parentDefault:true});
 				r = request(app);
 				done();
 			});
-			it('should map nested LIST',function (done) {
-				r.get('/post/1/comment').expect(200,db.data("comment")).end(done);
+			describe('regular', function(){
+				it('should map nested LIST',function (done) {
+					r.get('/post/1/comment').expect(200,db.data("comment")).end(done);
+				});
+				it('should map nested GET',function (done) {
+					r.get('/post/1/comment/1').expect(200,db.data("comment",0)).end(done);
+				});
+				it('should return 404 when GET for absurd ID of nested item',function (done) {
+					r.get('/post/1/comment/12345').expect(404).end(done);
+				});
+				it('should map nested PUT',function (done) {
+					var rec = {comment:"new comment"};
+					async.series([
+						function (cb) {r.put('/post/1/comment/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},rec,{id:"1"}),cb);}
+					],done);
+				});
+				it('should map nested PATCH',function (done) {
+					var rec = {comment:"new comment"};
+					async.series([
+						function (cb) {r.patch('/post/1/comment/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},db.data("comment",0),rec),cb);}
+					],done);
+				});
+				it('should return 404 for non-existent PUT for nested absurd ID',function (done) {
+					r.put('/post/1/comment/12345').send({title:"nowfoo"}).expect(404).end(done);
+				});
+				it('should map nested POST',function (done) {
+					var newPost = {comment:"new comment"};
+					async.waterfall([
+						function (cb) {r.post('/post/1/comment').send(newPost).expect(201,cb);},
+						function (res,cb) {r.get('/post/1/comment/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
+					],done);
+				});
+				it('should map nested DELETE',function (done) {
+					async.series([
+						function (cb) {r.del('/post/1/comment/1').expect(200,cb);},
+						function (cb) {r.get('/post/1/comment/1').expect(404,cb);}
+					],done);
+				});
+				it('should 404 DELETE for absurd ID for nested',function (done) {
+					r.del('/post/1/comment/12345').expect(404).end(done);
+				});		
 			});
-			it('should map nested GET',function (done) {
-				r.get('/post/1/comment/1').expect(200,db.data("comment",0)).end(done);
+			describe('parent property', function(){
+				it('should reject POST when missing parent property', function(done){
+				  r.post('/post/1/nestRequire').send({comment:"new comment"}).type('json').expect(400,done);
+				});
+				it('should reject POST when conflicting parent property', function(done){
+				  r.post('/post/1/nestRequire').send({comment:"new comment",post:"2"}).type('json').expect(400,done);
+				});
+				it('should accept POST when matching parent property', function(done){
+					var newitem = {comment:"new comment",post:"1"};
+					async.waterfall([
+						function(cb) {r.post('/post/1/nestRequire').send(newitem).type('json').expect(201,cb);},
+						function(res,cb) {r.get('/post/1/nestRequire/'+res.text).expect(200,_.extend({},newitem,{id:res.text}),cb);}
+					],done);
+				});
+				it('should reject PUT when missing parent property', function(done){
+				  r.put('/post/1/nestRequire/1').send({comment:"new comment"}).type('json').expect(400,done);
+				});
+				it('should reject PUT when conflicting parent property', function(done){
+				  r.put('/post/1/nestRequire/1').send({comment:"new comment",post:"2"}).type('json').expect(400,done);
+				});
+				it('should accept PUT when matching parent property', function(done){
+					var newitem = {comment:"new comment",post:"1"};
+					async.waterfall([
+						function(cb) {r.put('/post/1/nestRequire/1').send(newitem).type('json').expect(200,cb);},
+						function(res,cb) {r.get('/post/1/nestRequire/1').expect(200,_.extend({},newitem,{id:"1"}),cb);}
+					],done);
+				});
+				it('should accept PATCH when missing parent property', function(done){
+					var newitem = {comment:"new comment"};
+					async.waterfall([
+						function(cb) {r.patch('/post/1/nestRequire/1').send(newitem).type('json').expect(200,cb);},
+						function(res,cb) {r.get('/post/1/nestRequire/1').expect(200,_.extend({},newitem,{id:"1",post:"1"}),cb);}
+					],done);
+				});
+				it('should reject PATCH when conflicting parent property', function(done){
+				  r.patch('/post/1/nestRequire/1').send({comment:"new comment",post:"2"}).type('json').expect(400,done);
+				});
+				it('should accept PATCH when matching parent property', function(done){
+					var newitem = {comment:"new comment",post:"1"};
+					async.waterfall([
+						function(cb) {r.patch('/post/1/nestRequire/1').send(newitem).type('json').expect(200,cb);},
+						function(res,cb) {r.get('/post/1/nestRequire/1').expect(200,_.extend({},newitem,{id:"1"}),cb);}
+					],done);
+				});
 			});
-			it('should return 404 when GET for absurd ID of nested item',function (done) {
-				r.get('/post/1/comment/12345').expect(404).end(done);
+			describe('parent default', function(){
+				it('should accept POST when missing parent property', function(done){
+					var newitem = {comment:"new comment"};
+					async.waterfall([
+						function(cb) {r.post('/post/1/nestOptional').send(newitem).type('json').expect(201,cb);},
+						function(res,cb) {r.get('/post/1/nestOptional/'+res.text).expect(200,_.extend({},newitem,{id:res.text,post:"1"}),cb);}
+					],done);
+				});
+				it('should reject POST when conflicting parent property', function(done){
+				  r.post('/post/1/nestOptional').send({comment:"new comment",post:"2"}).type('json').expect(400,done);
+				});
+				it('should accept POST when matching parent property', function(done){
+					var newitem = {comment:"new comment",post:"1"};
+					async.waterfall([
+						function(cb) {r.post('/post/1/nestOptional').send(newitem).type('json').expect(201,cb);},
+						function(res,cb) {r.get('/post/1/nestOptional/'+res.text).expect(200,_.extend({},newitem,{id:res.text}),cb);}
+					],done);
+				});
+				it('should accept PUT when missing parent property', function(done){
+					var newitem = {comment:"new comment"};
+					async.waterfall([
+						function(cb) {r.put('/post/1/nestOptional/1').send(newitem).type('json').expect(200,cb);},
+						function(res,cb) {r.get('/post/1/nestOptional/1').expect(200,_.extend({},newitem,{id:"1",post:"1"}),cb);}
+					],done);
+				});
+				it('should reject PUT when conflicting parent property', function(done){
+				  r.put('/post/1/nestOptional/1').send({comment:"new comment",post:"2"}).type('json').expect(400,done);
+				});
+				it('should accept PUT when matching parent property', function(done){
+					var newitem = {comment:"new comment",post:"1"};
+					async.waterfall([
+						function(cb) {r.put('/post/1/nestOptional/1').send(newitem).type('json').expect(200,cb);},
+						function(res,cb) {r.get('/post/1/nestOptional/1').expect(200,_.extend({},newitem,{id:"1"}),cb);}
+					],done);
+				});
 			});
-			it('should map nested PUT',function (done) {
-				var rec = {comment:"new comment"};
-				async.series([
-					function (cb) {r.put('/post/1/comment/1').send(rec).expect(200,cb);},
-					function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},rec,{id:"1"}),cb);}
-				],done);
-			});
-			it('should map nested PATCH',function (done) {
-				var rec = {comment:"new comment"};
-				async.series([
-					function (cb) {r.patch('/post/1/comment/1').send(rec).expect(200,cb);},
-					function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},db.data("comment",0),rec),cb);}
-				],done);
-			});
-			it('should return 404 for non-existent PUT for nested absurd ID',function (done) {
-				r.put('/post/1/comment/12345').send({title:"nowfoo"}).expect(404).end(done);
-			});
-			it('should map nested POST',function (done) {
-				var newPost = {comment:"new comment"};
-				async.waterfall([
-					function (cb) {r.post('/post/1/comment').send(newPost).expect(201,cb);},
-					function (res,cb) {r.get('/post/1/comment/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
-				],done);
-			});
-			it('should map nested DELETE',function (done) {
-				async.series([
-					function (cb) {r.del('/post/1/comment/1').expect(200,cb);},
-					function (cb) {r.get('/post/1/comment/1').expect(404,cb);}
-				],done);
-			});
-			it('should 404 DELETE for absurd ID for nested',function (done) {
-				r.del('/post/1/comment/12345').expect(404).end(done);
-			});		  
 		});
 		describe('with controllers',function () {
 			before(function (done) {

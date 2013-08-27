@@ -202,6 +202,66 @@ PATCH     /post/:post/comment/:comment/note/:note   note#patch()
 DELETE    /post/:post/comment/:comment/note/:note   note#destroy()
 ````
 
+##### Required Parent Param
+Sometimes, you want to require that a nested resource has a property that matches the parent.
+
+For example, if I am creating a new nested comment on post 2 as follows:
+
+    POST /post/2/comment {author:"john",content:"This is a comment"}
+
+I might want the content to *require* the name of the parent as a property:
+
+    {author:"john",content:"This is a comment",post:"2"}
+		
+booster can enforce this if you tell it to! When sitting up a nested resource, just set the `parentProperty` to `true` as follows:
+
+````JavaScript
+booster.resource('comment',{parent:'post',parentProperty:true});
+````
+
+If `parentProperty` is set to `true`, booster will *insist* that the posted body contains a property with the same name as the parent, and that its value precisely matches the value of the parent parameter. In other words, it will insist that `req.params[parent] === req.body[parent]`. If not, it will reject it with a `400` error.
+
+This rule is enforced for *all* `POST`, `PUT` and `PATCH`.
+
+If you have:
+
+````JavaScript
+booster.resource('post');
+booster.resource('comment',{parent:'post',parentProperty:true});
+````
+
+each of the following examples, it will show what works and what doesn't
+
+````
+POST   /post/3/comment    {post:"4"}  // FAIL: "4" !== "3"
+POST   /post/3/comment    {post:"3"}  // PASS: "3" === "3"
+POST   /post/3/comment    {}          // FAIL: missing "post" property
+PUT    /post/3/comment/4  {post:"4"}  // FAIL: "4" !== "3"
+PUT    /post/3/comment/4  {post:"3"}  // PASS: "3" === "3"
+PUT    /post/3/comment/4  {}          // FAIL: missing "post" property and PUT means replace entirely
+PATCH  /post/3/comment/4  {post:"4"}  // FAIL: "4" !== "3"
+PATCH  /post/3/comment/4  {post:"3"}  // PASS: "3" === "3"
+PATCH  /post/3/comment/4  {}          // PASS: missing "post" property, but PATCH is only an update, not a replace
+````
+
+Note that for POST or PUT, where the body is the entire new or replacement object, the property *must* exist, else it fails. However, for PATCH, where it only replaces those explicit fields, it the parent property is missing, it passes.
+
+In the case of POST and PUT, if you want the field to default to the value of the parent property  - in our above example, `{post:"3"}` - you can tell booster, "Hey, the field has to match, but if it isn't there at all, fill it in for me." Just tell the resource, in addition to setting `parentProperty` to `true`, set `parentDefault` to `true` as well:
+
+````JavaScript
+booster.resource('post');
+booster.resource('comment',{parent:'post',parentProperty:true,parentDefault:true});
+````
+
+In that case, all of the above examples where missing `post` caused the route to fail with a `400` will now pass, and the value will be set:
+
+````
+POST   /post/3/comment    {}          // PASS: will be sent to the model as {post:"3"}
+PUT    /post/3/comment/4  {}          // PASS: will be sent to the model as {post:"3"}
+````
+
+
+
 #### Resource Property
 What if you don't want to rest a whole new resource, but have a separate property as part of a resource? For example, if you want to be able to `PUT /post/:post/title` and so change the title directly?
 
