@@ -44,7 +44,7 @@ db = dbSetUp();
 booster.init({app:app,db:db,controllers:'./controllers',models:'./models'});
 booster.resource('post');
 booster.resource('comment',{parent:'post'});
-booster.resource('test',{parent:'/api'});
+booster.resource('test',{base:'/api'});
 
 app.listen(3000);
 ````
