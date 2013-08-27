@@ -44,6 +44,7 @@ db = dbSetUp();
 booster.init({app:app,db:db,controllers:'./controllers',models:'./models'});
 booster.resource('post');
 booster.resource('comment',{parent:'post'});
+booster.resource('note',{parent:'comment'});
 booster.resource('test',{base:'/api'});
 
 app.listen(3000);
@@ -63,6 +64,12 @@ You now have a RESTful app that listens on the following verb/path/action
 		PUT       /post/:post/comment/:comment    comment#update()
 		PATCH     /post/:post/comment/:comment    comment#patch()
 		DELETE    /post/:post/comment/:comment    comment#destroy()
+		GET       /post/:post/comment/:comment/note					note#index()
+		GET       /post/:post/comment/:comment/note/:note		note#show()
+		POST      /post/:post/comment/:comment/note/:note		note#create()
+		PUT       /post/:post/comment/:comment/note/:note   note#update()
+		PATCH     /post/:post/comment/:comment/note/:note   note#patch()
+		DELETE    /post/:post/comment/:comment/note/:note   note#destroy()
     GET       /api/test                       test#index()
     GET       /api/test/:test                 test#show()
     POST      /api/test                       test#create()
@@ -170,7 +177,30 @@ Which will give you
     PATCH     /post/:post/comment/:comment    comment#patch()
     DELETE    /post/:post/comment/:comment    comment#destroy()
 
-If you include *both* `parent` *and* `api`, it will ignore `api`.
+If you include *both* `parent` *and* `base`, it will ignore `base`.
+
+You can nest as many layers deep as you want:
+
+````JavaScript
+booster.resource('comment',{parent:'post'});
+booster.resource('note',{parent:'comment'});
+````
+
+
+````
+GET       /post/:post/comment             comment#index()
+GET       /post/:post/comment/:comment    comment#show()
+POST      /post/:post/comment             comment#create()
+PUT       /post/:post/comment/:comment    comment#update()
+PATCH     /post/:post/comment/:comment    comment#patch()
+DELETE    /post/:post/comment/:comment    comment#destroy()
+GET       /post/:post/comment/:comment/note					note#index()
+GET       /post/:post/comment/:comment/note/:note		note#show()
+POST      /post/:post/comment/:comment/note/:note		note#create()
+PUT       /post/:post/comment/:comment/note/:note   note#update()
+PATCH     /post/:post/comment/:comment/note/:note   note#patch()
+DELETE    /post/:post/comment/:comment/note/:note   note#destroy()
+````
 
 #### Resource Property
 What if you don't want to rest a whole new resource, but have a separate property as part of a resource? For example, if you want to be able to `PUT /post/:post/title` and so change the title directly?
