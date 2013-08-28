@@ -260,6 +260,45 @@ POST   /post/3/comment    {}          // PASS: will be sent to the model as {pos
 PUT    /post/3/comment/4  {}          // PASS: will be sent to the model as {post:"3"}
 ````
 
+Note that if you have a property set to `{mutable:false}` and the same property is `{parentDefault:true}`, it might conflict when doing a `PUT`. `POST` will never be a problem, since it does not yet exist, and `PATCH` is not a problem, since it only updates the given fields.
+
+For example, what if the data in the database is:
+
+    {id:"1",post:"3",content:"Hello, I am here"}
+		
+and you initialize as
+
+````JavaScript
+booster.resource('comment',{parent:'post',parentProperty:true,parentDefault:true});
+````
+
+If you do 
+
+    PUT /post/3/comment/1  {content:"Now I am not"}
+		
+booster will look at the update  (`PUT`) to comment with the id "1", see that it requires the parent property ("post") but that it isn't present, so it will add `{post:"3"}` before updating the model. This is the equivalent of:
+
+    PUT /post/3/comment/1  {content:"Now I am not",post:"3"}
+
+This is great, but what if you defined the `comment` model making `post` immutable:
+
+````JavaScript
+module.exports = {
+	fields: {
+		content:{required:true,mutable:true},
+		post: {required:true,mutable:false},
+		id: {required:true,mutable:false}
+	}
+}
+````
+
+After all, you do *not* want someone accidentally moving a comment from one post to another! But then the update of
+
+    PUT /post/3/comment/1  {content:"Now I am not",post:"3"}
+		
+will cause a `400` error, since it is trying to update the `post` property, and that one is immutable! 
+
+Not to worry; booster inteillgently handles this. If you actually *try* to update `post`, it will throw a `400`. But if you did not set it, and you have `parentDefault` set, it will not set it unless the field is mutable.
 
 
 #### Resource Property
