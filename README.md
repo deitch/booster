@@ -110,7 +110,11 @@ And what exactly goes in that config, anyways?
 
 
 ### REST Resources
-The basic step is defining a REST resource. 
+The basic step is defining a REST resource, like so:
+
+    booster.resource(name,opts)
+
+For example:
 
     booster.resource('comment');
 		
@@ -125,14 +129,18 @@ This sets up a resource named 'comment', expecting a controller (or using the de
 
 
 #### Name of the rose. I mean resource.
-The first (and required) argument to `booster.resource()` is the name of the resource. It should be all string, valid alphanumeric, and will ignore all leading and trailing whitespace. It will also ignore anything before the last slash, so:
+The first (and only required) argument to `booster.resource()` is the name of the resource. It should be all string, valid alphanumeric, and will ignore all leading and trailing whitespace. It will also ignore anything before the last slash, so:
 
     abc     -> abc
 		/abc    -> abc
 		a/b/c   -> c
 		ca/     -> INVALID
 
-#### Base path
+
+#### Optional options
+`opts` is just a plain old JavaScript object with options. What goes into those options? That depends what you want to do with this resource.
+
+##### Base path
 If you prefer to have a base path to your resource, so the path is `/api/comment`, just do:
 
     booster.resource('comment',{base:'/api'});
@@ -163,7 +171,7 @@ You could simply do:
 
 If you *do* specify a `base` on a specific resource *after* already specifying the global `base` in `init()`, the resource-specific `base` will override the global one.
 
-#### Nested Resource
+##### Nested Resource
 If you want to nest a resource, like in the example above, you just need to pass a `parent` option:
 
     booster.resource('comment',{parent:'post'});
@@ -202,7 +210,7 @@ PATCH     /post/:post/comment/:comment/note/:note   note#patch()
 DELETE    /post/:post/comment/:comment/note/:note   note#destroy()
 ````
 
-##### Required Parent Param
+###### Required Parent Param
 Sometimes, you want to require that a nested resource has a property that matches the parent.
 
 For example, if I am creating a new nested comment on post 2 as follows:
@@ -301,8 +309,8 @@ will cause a `400` error, since it is trying to update the `post` property, and 
 Not to worry; booster inteillgently handles this. If you actually *try* to update `post`, it will throw a `400`. But if you did not set it, and you have `parentDefault` set, it will not set it unless the field is mutable.
 
 
-#### Resource Property
-What if you don't want to rest a whole new resource, but have a separate property as part of a resource? For example, if you want to be able to `PUT /post/:post/title` and so change the title directly?
+##### Resource Property
+What if you don't want to create a whole new resource, but have a separate property as part of a resource? For example, if you want to be able to `PUT /post/:post/title` and so change the title directly?
 
 It already works! Yes, that's right. If you already created the resource `booster.resource('post')`, then unless you created a nested resource of exactly the same name, `GET /post/:post/title` will get you the title from `/post/:post` Similarly, you can `PUT /post/:post/title` to change it. But, no you cannot `POST` or `PATCH` it; they don't make much sense.
 
@@ -317,7 +325,7 @@ module.exports = {
 }
 ````
 
-#### Resource as a Property (RaaP?)
+##### Custom Properties
 OK, so the above works great if you want `/post/1/title` to map to `title` of post 1, or `/post/10/author` to map to `author` of post 10. But what if you want all of the above **and** you want to map some special properties to their own handlers. For example, if a user is:
 
     {id:"1",firstname:"john",lastname:"smith"}
@@ -385,7 +393,7 @@ Going back to the above example, here is what will happen with each type of requ
     PUT /user/1/strange -> use function for LOGIC D; properties.strange.set defined
 
 
-##### 
+######  Resource as a Property (RaaP?)
 Actually, it is even **easier**! A really common pattern is where a property of one resource is actually a reference to another resource that has some find restrictions. Take a look at the following:
 
 
@@ -434,7 +442,7 @@ But come on, is that not *so* much easier? You want to write 17 lines instead of
 
 
 
-#### Root path
+##### Root path
 If you want to have the resource called at the root path, you just need to pass a `root` option:
 
     booster.resource('comment',{root:true})
