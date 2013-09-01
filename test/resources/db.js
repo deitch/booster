@@ -158,7 +158,15 @@ module.exports = {
 	// simple function to reset data with DATA
 	reset : reset,
 	data: function (name,idx) {
-		return(typeof(idx) === "number" ? data[name][idx] : data[name]);
+		var ret;
+		if (idx === null || idx === undefined) {
+			ret = data[name];
+		} else if (typeof(idx) === "number") {
+			ret = data[name][idx];
+		} else {
+			ret = data[name][findById(name,idx)];
+		}
+		return(ret);
 	}
 	
 };

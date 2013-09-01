@@ -11,10 +11,12 @@ before(function () {
 
 // call the debugger in case we are in debug mode
 describe('booster',function () {
+	beforeEach(function(){
+		db.reset();
+	});
 	var app, r;
 	describe('statics', function(){
 		before(function (done) {
-			db.reset();
 			app = this.app = express();
 			app.use(express.bodyParser());
 			booster.init({db:db,app:app,models:__dirname+'/resources/models'});
@@ -40,64 +42,150 @@ describe('booster',function () {
 	});
 	describe('.resource(name)',function () {
 		describe('without models or controllers',function () {
-			before(function (done) {
-				db.reset();
-				app = this.app = express();
-				app.use(express.bodyParser());
-				booster.init({db:db,app:app});
-				booster.resource('post');
-				r = request(app);
-				done();
+			describe('basic', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post');
+					r = request(app);
+					done();
+				});
+				it('should map LIST',function (done) {
+					r.get('/post').expect(200,db.data("post")).end(done);
+				});
+				it('should return 404 for unknown resource', function(done){
+				  r.get('/poster').expect(404,done);
+				});
+				it('should map GET',function (done) {
+					r.get('/post/1').expect(200,db.data("post",0)).end(done);
+				});
+				it('should return 404 when GET for absurd ID',function (done) {
+					r.get('/post/12345').expect(404).end(done);
+				});
+				it('should map PUT',function (done) {
+					var rec = {title:"nowfoo"};
+					async.series([
+						function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(200,_.extend(rec,{id:"1"}),cb);}
+					],done);
+				});
+				it('should map PATCH',function (done) {
+					var rec = {title:"nowfoo"};
+					async.series([
+						function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+					],done);
+				});
+				it('should return 404 for non-existent PUT for absurd ID',function (done) {
+					r.put('/post/12345').send({title:"nowfoo"}).expect(404).end(done);
+				});
+				it('should map POST',function (done) {
+					var newPost = {title:"new post",content:"messy"};
+					async.waterfall([
+						function (cb) {r.post('/post').send(newPost).expect(201,cb);},
+						function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
+					],done);
+				});
+				it('should map DELETE',function (done) {
+					async.series([
+						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(404,cb);}
+					],done);
+				});
+				it('should 404 DELETE for absurd ID',function (done) {
+					r.del('/post/12345').expect(404).end(done);
+				});
 			});
-			it('should map LIST',function (done) {
-				r.get('/post').expect(200,db.data("post")).end(done);
+			describe('with multiple exception', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{except:["index","show"]});
+					r = request(app);
+					done();
+				});
+				it('should remove LIST',function (done) {
+					r.get('/post').expect(404,done);
+				});
+				it('should remove GET',function (done) {
+					r.get('/post/1').expect(404).end(done);
+				});
+				it('should map PUT',function (done) {
+					var rec = {title:"new title",content:"new content"};
+					async.series([
+						function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
+						function (cb) {db.data("post","1").should.eql(_.extend({},db.data("post","1"),rec));cb();}
+					],done);
+				});
+				it('should map PATCH',function (done) {
+					var rec = {content:"new content"};
+					async.series([
+						function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
+						function (cb) {db.data("post","1").should.eql(_.extend({},db.data("post","1"),rec));cb();}
+					],done);
+				});
+				it('should map POST',function (done) {
+					var newrec = {content:"some content",title:"a title"};
+					async.waterfall([
+						function (cb) {r.post('/post').send(newrec).expect(201,cb);},
+						function (res,cb) {db.data("post",res.text).should.eql(_.extend({},newrec,{id:res.text}));cb();}
+					],done);
+				});
+				it('should map DELETE',function (done) {
+					async.series([
+						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(404,cb);}
+					],done);
+				});
 			});
-			it('should return 404 for unknown resource', function(done){
-			  r.get('/poster').expect(404,done);
-			});
-			it('should map GET',function (done) {
-				r.get('/post/1').expect(200,db.data("post",0)).end(done);
-			});
-			it('should return 404 when GET for absurd ID',function (done) {
-				r.get('/post/12345').expect(404).end(done);
-			});
-			it('should map PUT',function (done) {
-				var rec = {title:"nowfoo"};
-				async.series([
-					function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
-					function (cb) {r.get('/post/1').expect(200,_.extend(rec,{id:"1"}),cb);}
-				],done);
-			});
-			it('should map PATCH',function (done) {
-				var rec = {title:"nowfoo"};
-				async.series([
-					function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
-					function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
-				],done);
-			});
-			it('should return 404 for non-existent PUT for absurd ID',function (done) {
-				r.put('/post/12345').send({title:"nowfoo"}).expect(404).end(done);
-			});
-			it('should map POST',function (done) {
-				var newPost = {title:"new post",content:"messy"};
-				async.waterfall([
-					function (cb) {r.post('/post').send(newPost).expect(201,cb);},
-					function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
-				],done);
-			});
-			it('should map DELETE',function (done) {
-				async.series([
-					function (cb) {r.del('/post/1').expect(200,cb);},
-					function (cb) {r.get('/post/1').expect(404,cb);}
-				],done);
-			});
-			it('should 404 DELETE for absurd ID',function (done) {
-				r.del('/post/12345').expect(404).end(done);
+			describe('with single exception', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{except:"index"});
+					r = request(app);
+					done();
+				});
+				it('should remove LIST',function (done) {
+					r.get('/post').expect(404,done);
+				});
+				it('should map GET',function (done) {
+					r.get('/post/1').expect(200,db.data("post",0)).end(done);
+				});
+				it('should map PUT',function (done) {
+					var rec = {title:"a title",content:"nowfoo"};
+					async.series([
+						function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+					],done);
+				});
+				it('should map PATCH',function (done) {
+					var rec = {content:"nowfoo"};
+					async.series([
+						function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+					],done);
+				});
+				it('should map POST',function (done) {
+					var newrec = {content:"new content",title:"Fancy Title"};
+					async.waterfall([
+						function (cb) {r.post('/post').send(newrec).expect(201,cb);},
+						function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newrec,{id:res.text}),cb);}
+					],done);
+				});
+				it('should map DELETE',function (done) {
+					async.series([
+						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.get('/post/1').expect(404,cb);}
+					],done);
+				});
 			});
 		});
 		describe('without body parser', function(){
 			before(function (done) {
-				db.reset();
 				app = this.app = express();
 				booster.init({db:db,app:app});
 				booster.resource('post');
@@ -129,7 +217,6 @@ describe('booster',function () {
 		});
 		describe('at the root path', function(){
 			before(function (done) {
-				db.reset();
 				app = this.app = express();
 				app.use(express.bodyParser());
 				booster.init({db:db,app:app});
@@ -184,7 +271,6 @@ describe('booster',function () {
 			describe('resource-specific', function(){
 				describe('without trailing slash', function(){
 					before(function (done) {
-						db.reset();
 						app = this.app = express();
 						app.use(express.bodyParser());
 						booster.init({db:db,app:app});
@@ -237,7 +323,6 @@ describe('booster',function () {
 				});
 				describe('with trailing slash', function(){
 					before(function (done) {
-						db.reset();
 						app = this.app = express();
 						app.use(express.bodyParser());
 						booster.init({db:db,app:app});
@@ -284,7 +369,6 @@ describe('booster',function () {
 			});
 			describe('global', function(){
 				before(function (done) {
-					db.reset();
 					app = this.app = express();
 					app.use(express.bodyParser());
 					booster.init({db:db,app:app,base:'/api2'});
@@ -341,7 +425,6 @@ describe('booster',function () {
 		});
 		describe('with nested resource', function(){
 			before(function (done) {
-				db.reset();
 				app = this.app = express();
 				app.use(express.bodyParser());
 				booster.init({db:db,app:app});
@@ -480,7 +563,6 @@ describe('booster',function () {
 		});
 		describe('with controllers',function () {
 			before(function (done) {
-				db.reset();
 				app = this.app = express();
 				app.use(express.bodyParser());
 				booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers'});
@@ -490,9 +572,6 @@ describe('booster',function () {
 				booster.resource('processor');
 				r = request(app);
 				done();
-			});
-			beforeEach(function () {
-				db.reset();
 			});
 			describe('basic controller', function(){
 				it('should return 404 when override LIST to null',function (done) {
@@ -637,7 +716,6 @@ describe('booster',function () {
 		});
 		describe('with models',function () {
 			before(function (done) {
-				db.reset();
 				app = this.app = express();
 				app.use(express.bodyParser());
 				booster.init({db:db,app:app,models:__dirname+'/resources/models'});
@@ -663,9 +741,6 @@ describe('booster',function () {
 				});
 			});
 			describe('basic fields',function () {
-				beforeEach(function(){
-				  db.reset();
-				});
 				it('should fail to LIST with invalid record',function (done) {
 					r.get('/post').expect(400,[{other:"unknownfield"}]).end(done);
 				});
@@ -1054,9 +1129,6 @@ describe('booster',function () {
 			});
 			describe('with unique fields', function(){
 			  describe('single unique field', function(){
-					beforeEach(function(){
-					  db.reset();
-					});
 			    it('should reject create with conflict', function(done){
 			      r.post('/singleunique').type('json').send({firstname:"steve",lastname:"smith"}).expect(409,done);
 			    });
@@ -1077,9 +1149,6 @@ describe('booster',function () {
 					});
 			  });
 				describe('multiple unique fields', function(){
-					beforeEach(function(){
-					  db.reset();
-					});
 			    it('should reject create with first field conflict', function(done){
 			      r.post('/doubleunique').type('json').send({firstname:"steve",lastname:"smith"}).expect(409,done);
 			    });
@@ -1118,9 +1187,6 @@ describe('booster',function () {
 					});
 				});
 				describe('combination unique fields', function(){
-					beforeEach(function(){
-					  db.reset();
-					});
 			    it('should reject create with both fields conflict', function(done){
 			      r.post('/combounique').type('json').send({firstname:"sam",lastname:"smith"}).expect(409,done);
 			    });
@@ -1163,7 +1229,6 @@ describe('booster',function () {
 	});
 	describe('general route', function(){
 		before(function (done) {
-			db.reset();
 			app = this.app = express();
 			app.use(express.bodyParser());
 			booster.init({db:db,app:app});

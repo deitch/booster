@@ -402,9 +402,9 @@ Which will give you
 Notice that the resource itself is still `comment`, but the path does not include the name `comment`.
 
 ### Controllers
-The default controller provides the standard actions: index, show, create, update, destroy. It interacts with the models of the same name (see *models*, below), and lists all of them, shows one, creates a new one, updates an existing one, or destroys one.
+The default controller provides the standard actions: index, show, create, update, patch, destroy. It interacts with the models of the same name (see *models*, below), and lists all of them, shows one, creates a new one, updates an existing one, or destroys one.
 
-If you want to override one or more of the actions, just create a file with that name in *controllerPath* directory, the default or the one you provided when initializing booster. Each function should match express route signature. If you want to eliminate a route entirely, override it with a `null`. See the example below.
+If you want to override one or more of the actions, just create a file with that name in *controllerPath* directory, either the default path or the one you provided when initializing booster. Each function should match express route signature. If you want to eliminate a route entirely, override it with a `null`. See the example below.
 
 ````JavaScript
 // <controllerPath>/post.js
@@ -417,6 +417,15 @@ module.exports = {
 	// because we actively made update null, the update() function and its corresponding PUT /post/:post will be disabled and return 404
 };
 ````
+
+You can also take a shortcut to eliminating a route, using the `except` configuration parameter:
+
+````JavaScript
+booster.resource('post',{except:"index"}); // will create all the routes except GET /post
+booster.resource('post',{except:["update","patch"]}); // will create all the routes except PATCH /post/:post and PUT /post/:post
+````
+
+Note that if you are eliminating only one, you can put it in an array, or just as a string.
 
 #### What does the default controller do?
 Well, it looks like this but with real error-handling. Look at the source code in github if you want the real nitty-gritty.
