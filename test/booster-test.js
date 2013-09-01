@@ -183,6 +183,26 @@ describe('booster',function () {
 					],done);
 				});
 			});
+			describe('resource as property', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{resource:{comment:["get"]}});
+					booster.resource('comment');
+					r = request(app);
+					done();
+				});
+				it('should map LIST',function (done) {
+					r.get('/post').expect(200,db.data("post"),done);
+				});
+				it('should map GET',function (done) {
+					r.get('/post/1').expect(200,db.data("post",0),done);
+				});
+				it('should GET resource as a property', function(done){
+				  r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"}),done);
+				});
+			});
 		});
 		describe('without body parser', function(){
 			before(function (done) {

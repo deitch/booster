@@ -163,8 +163,10 @@ module.exports = {
 			ret = data[name];
 		} else if (typeof(idx) === "number") {
 			ret = data[name][idx];
-		} else {
+		} else if (typeof(idx) === "string"){
 			ret = data[name][findById(name,idx)];
+		} else {
+			ret = sjs.matchArray(data[name],idx);
 		}
 		return(ret);
 	}

@@ -317,7 +317,7 @@ module.exports = {
 }
 ````
 
-#### Special Resource Property
+#### Resource as a Property (RaaP?)
 OK, so the above works great if you want `/post/1/title` to map to `title` of post 1, or `/post/10/author` to map to `author` of post 10. But what if you want all of the above **and** you want to map some special properties to their own handlers. For example, if a user is:
 
     {id:"1",firstname:"john",lastname:"smith"}
@@ -383,6 +383,55 @@ Going back to the above example, here is what will happen with each type of requ
     PUT /user/1/roles -> get property "roles" of the object; properties.roles.set not defined
     GET /user/1/strange -> get property "strange" of the object; properties.strange.get not defined
     PUT /user/1/strange -> use function for LOGIC D; properties.strange.set defined
+
+
+##### 
+Actually, it is even **easier**! A really common pattern is where a property of one resource is actually a reference to another resource that has some find restrictions. Take a look at the following:
+
+
+    GET /group         -> get all of the groups
+		GET /group/10      -> get group whose ID is 10
+    GET /user/1/name   -> get the name of user 1, normal property
+		GET /user/1/groups -> Get all of the groups of which user "1" is a member, like GET /group?{user:1}
+
+
+Since this is such a common pattern, let's make it easier for you!
+
+````JavaScript
+booster.resource('group');
+booster.resource('user',{resource:{group:["get"]}});
+````
+
+That is exactly the same as the following:
+
+````JavaScript
+booster.resource('group');
+booster.resource('user');
+
+// and inside routes/user.js :
+module.exports = {
+	properties: {
+		group: {
+			get: function(req,res,next) {
+				// get the groups of the user from the separate groups list and send them off
+				req.booster.models.group.find({user:req.params.user},function (err,data) {
+					if (err) {
+						res.send(400,err);
+					} else if (data && _.size(data) > 0) {
+						res.send(200,data[0]);
+					} else {
+						next();
+					}
+				});
+				
+			}
+		}
+	}
+}
+````
+
+But come on, is that not *so* much easier? You want to write 17 lines instead of 2, and in 2 different files? Go ahead. But I think 2 lines is just cooler.
+
 
 
 #### Root path
