@@ -13,7 +13,9 @@
 		"mvc",
 		"web-framework",
 		"express",
-		"api"
+		"api",
+		"models",
+		"validation"
 	],
 	"dependencies": {
     "lodash":">=1.3.1",
