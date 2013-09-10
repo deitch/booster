@@ -404,7 +404,7 @@ Actually, it is even **easier**! A really common pattern is where a property of 
     GET /group         -> get all of the groups
 		GET /group/10      -> get group whose ID is 10
     GET /user/1/name   -> get the name of user 1, normal property
-		GET /user/1/groups -> Get all of the groups of which user "1" is a member, like GET /group?{user:1}
+		GET /user/1/group -> Get all of the groups of which user "1" is a member, like GET /group?{user:1}
 
 
 Since this is such a common pattern, let's make it easier for you!
