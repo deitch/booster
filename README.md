@@ -445,6 +445,56 @@ module.exports = {
 But come on, is that not *so* much easier? You want to write 17 lines instead of 2, and in 2 different files? Go ahead. But I think 2 lines is just cooler.
 
 
+What about the easier set? Can we do that? You know we can!
+
+````JavaScript
+booster.resource('group');
+booster.resource('user',{resource:{group:["set"]}});
+````
+
+This means, "whatever I sent in the body to `/user/1/group` should be all of the groups that have `{user:1}` in them, no more, no less."
+
+It is exactly the same as the following:
+
+````JavaScript
+booster.resource('group').resource('user');
+
+// and inside routes/user.js :
+module.exports = {
+	properties: {
+		group: {
+			set: function(req,res,next) {
+				var body = req.body ? [].concat(req.body) : [];
+				req.booster.models.group.find({user:req.params.user},function (err,data) {
+					var toRemove = [], toAdd = [];
+					if (err) {
+						res.send(400,err);
+					} else {
+						// add to toRemove all of those that are in data but not in body
+						// add to toAdd all of those that are in body but not in data
+						
+						// now to the removal and creation
+						async.series([
+							function (cb) {
+								async.each(toAdd,function (item,cb) {
+									that.create(item,cb);
+								},cb);
+							},
+							function (cb) {
+								async.each(toRemove,function (item,cb) {
+									that.destroy(item.id,cb);
+								},cb);
+							}
+						],callback);						
+					}
+				});
+			}
+
+		}
+	}
+}
+````
+
 
 ##### Root path
 If you want to have the resource called at the root path, you just need to pass a `root` option:

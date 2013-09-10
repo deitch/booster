@@ -188,7 +188,7 @@ describe('booster',function () {
 					app = this.app = express();
 					app.use(express.bodyParser());
 					booster.init({db:db,app:app});
-					booster.resource('post',{resource:{comment:["get"]}});
+					booster.resource('post',{resource:{comment:["get","set"]}});
 					booster.resource('comment');
 					r = request(app);
 					done();
@@ -201,6 +201,18 @@ describe('booster',function () {
 				});
 				it('should GET resource as a property', function(done){
 				  r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"}),done);
+				});
+				it('should SET resource as a property', function(done){
+					// original data - we want to keep one, add one, discard one
+					//{id:"1",post:"1",comment:"First comment on 1st post"},
+					//{id:"2",post:"1",comment:"Second comment on 1st post"},
+					var rec = [{post:"1",comment:"First comment on 1st post"},{post:"1",comment:"Third comment on 1st post"}],expect = [];
+					expect.push(db.data("comment",rec[0])[0]);
+					async.series([
+						function (cb) {r.put('/post/1/comment').send(rec).expect(200,cb);},
+						function (cb) {expect = [].concat(db.data("comment",rec[0])).concat(db.data("comment",rec[1]));cb();},
+						function (cb) {r.get('/post/1/comment').expect(200,expect,cb);}
+					],done);
 				});
 			});
 			describe('chaining', function(){
