@@ -203,6 +203,22 @@ describe('booster',function () {
 				  r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"}),done);
 				});
 			});
+			describe('chaining', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post').resource('comment');
+					r = request(app);
+					done();
+				});
+				it('should map LIST post',function (done) {
+					r.get('/post').expect(200,db.data("post"),done);
+				});
+				it('should map LIST comment',function (done) {
+					r.get('/comment').expect(200,db.data("comment"),done);
+				});
+			});
 		});
 		describe('without body parser', function(){
 			before(function (done) {

@@ -10,6 +10,10 @@ var booster = require('booster'), express = require('express'), app = express(),
 booster.init({app:app,db:db});
 booster.resource('post');
 
+// or
+booster.init({app:app,db:db}).resource('post');
+
+
 app.listen(3000);
 ````
 
@@ -112,7 +116,7 @@ And what exactly goes in that config, anyways?
 ### REST Resources
 The basic step is defining a REST resource, like so:
 
-    booster.resource(name,opts)
+    booster.resource(name,opts); // returns booster, so you can chain
 
 For example:
 
@@ -1151,7 +1155,8 @@ What if you, for some strange and odd reason (well, it cannot be *that* odd if w
 
 Pretty easy, just do:
 
-    booster.model('post');
+    booster.model('post'); // returns booster, so you can chain
+		booster.model('post').model('hole');
 		
 Done! You get validations, unique checking, all of the fun stuff, but no paths are created.
 
