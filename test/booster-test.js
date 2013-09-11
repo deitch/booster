@@ -202,6 +202,10 @@ describe('booster',function () {
 				it('should GET resource as a property', function(done){
 				  r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"}),done);
 				});
+				it('should reject SET resource if the field for self is not the same as given ID', function(done){
+					var rec = [{post:"1",comment:"First comment on 1st post"},{post:"2",comment:"Third comment on 1st post"}];
+					r.put('/post/1/comment').send(rec).expect(400,"field post in records must equal path value",done);
+				});
 				it('should SET resource as a property', function(done){
 					// original data - we want to keep one, add one, discard one
 					//{id:"1",post:"1",comment:"First comment on 1st post"},
