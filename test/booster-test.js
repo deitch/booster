@@ -24,9 +24,6 @@ describe('booster',function () {
 			r = request(app);
 			done();
 		});
-		it('should have controllers hash', function(){
-		  booster.controllers.should.have.property('extender');
-		});
 		it('should have models hash', function(){
 		  booster.models.should.have.property('extender');
 		});
@@ -566,7 +563,7 @@ describe('booster',function () {
 				app.use(express.bodyParser());
 				booster.init({db:db,app:app});
 				booster.resource('post');
-				booster.resource('comment',{parent:'post'});
+				booster.resource('comment',{parent:'post'},{only:["index","show"]});
 				booster.resource('nestRequire',{parent:'post',parentProperty:true});
 				booster.resource('nestOptional',{parent:'post',parentProperty:true,parentDefault:true});
 				r = request(app);
@@ -694,6 +691,36 @@ describe('booster',function () {
 					async.waterfall([
 						function(cb) {r.put('/post/1/nestOptional/1').send(newitem).type('json').expect(200,cb);},
 						function(res,cb) {r.get('/post/1/nestOptional/1').expect(200,_.extend({},newitem,{id:"1"}),cb);}
+					],done);
+				});
+			});
+			describe('multiple options', function(){
+				it('should map LIST at base',function (done) {
+					r.get('/comment').expect(200,db.data("comment")).end(done);
+				});
+				it('should map GET at base',function (done) {
+					r.get('/comment/1').expect(200,db.data("comment",0)).end(done);
+				});
+				it('should return 404 when GET at base for absurd ID',function (done) {
+					r.get('/comment/12345').expect(404).end(done);
+				});
+				it('should have no PUT at base',function (done) {
+					r.put('/comment/1').expect(404,done);
+				});
+				it('should have no PATCH at base',function (done) {
+					r.patch('/comment/1').expect(404,done);
+				});
+				it('should have no DELETE at base',function (done) {
+					r.del('/comment/1').expect(404,done);
+				});
+				it('should have no POST at base',function (done) {
+					r.post('/comment/1').expect(404,done);
+				});
+				it('should retrieve via base correct object created via nest',function (done) {
+					var newPost = {comment:"new comment"};
+					async.waterfall([
+						function (cb) {r.post('/post/1/comment').send(newPost).expect(201,cb);},
+						function (res,cb) {r.get('/comment/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
 					],done);
 				});
 			});
@@ -1381,7 +1408,7 @@ describe('booster',function () {
 			done();
 		});
 	  it('should have access to req.booster on non-booster route', function(done){
-	    r.get('/booster').expect(200,{param:{},models:{post:{}},controllers:{post:{}}},done);
+	    r.get('/booster').expect(200,{param:{},models:{post:{}}},done);
 	  });
 	});
 });

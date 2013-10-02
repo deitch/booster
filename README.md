@@ -47,7 +47,7 @@ var express = require('express'), app = express(), booster = require('booster');
 db = dbSetUp();
 booster.init({app:app,db:db,controllers:'./controllers',models:'./models'});
 booster.resource('post');
-booster.resource('comment',{parent:'post'});
+booster.resource('comment',{parent:'post'},{only:"index"});
 booster.resource('note',{parent:'comment'});
 booster.resource('test',{base:'/api'});
 
@@ -68,6 +68,7 @@ You now have a RESTful app that listens on the following verb/path/action
 		PUT       /post/:post/comment/:comment    comment#update()
 		PATCH     /post/:post/comment/:comment    comment#patch()
 		DELETE    /post/:post/comment/:comment    comment#destroy()
+		GET       /comment             						comment#index()
 		GET       /post/:post/comment/:comment/note					note#index()
 		GET       /post/:post/comment/:comment/note/:note		note#show()
 		POST      /post/:post/comment/:comment/note/:note		note#create()
@@ -116,7 +117,7 @@ And what exactly goes in that config, anyways?
 ### REST Resources
 The basic step is defining a REST resource, like so:
 
-    booster.resource(name,opts); // returns booster, so you can chain
+    booster.resource(name,opts[,opts,opts...]); // returns booster, so you can chain
 
 For example:
 
@@ -142,7 +143,9 @@ The first (and only required) argument to `booster.resource()` is the name of th
 
 
 #### Optional options
-`opts` is just a plain old JavaScript object with options. What goes into those options? That depends what you want to do with this resource.
+`opts` is just a plain old JavaScript object with options. What goes into those options? That depends what you want to do with this resource and what path it should have.
+
+You can have the resource accessible from multiple paths and behave differently in each of those paths, by having multiple `opts`. First, let's see what you can do with each opts, then we'll string multiple together.
 
 ##### Base path
 If you prefer to have a base path to your resource, so the path is `/api/comment`, just do:
@@ -511,6 +514,43 @@ Which will give you
     DELETE    /:comment     comment#destroy()
 
 Notice that the resource itself is still `comment`, but the path does not include the name `comment`.
+
+
+#### Multiple Paths / Options
+If you want a resource to exist in multiple locations, each with different (or similar) behaviour, you specify multiple options objects. 
+
+Let's say you want "post" to exist in 2 places:
+
+    GET /post								post#index()
+		GET /post/:post					post#show()
+    GET /api/post						post#index()
+		GET /api/post/:post			post#show()
+
+Each "post" refers to the same resource, but is accessible at different paths. Perhaps you only allow updates at one path but not the other, e.g. if comments have a unique ID, so you can retrieve comments from anywhere, but update only via the "post":
+
+    GET /post/:post/comment							comment#index()
+    GET /post/:post/comment/:comment		comment#show()
+    PUT /post/:post/comment/:comment		comment#update()
+    PATCH /post/:post/comment/:comment	comment#patch()
+    DELETE /post/:post/comment/:comment	comment#destroy()
+		GET /comment/:comment								comment#show()
+
+These are the same "comment" resources, but accessible via different paths. All you need to do is have an `opts` for each one of them when declaring the resource.
+
+````JavaScript
+booster.resource("post");
+booster.resource('comment',{parent:"post"},{only:"show"});
+````
+
+The first options object `{parent:"post"}` sets up the path for a "comment" as child of a parent as `/post/:post/comment`. The second `{only:"show"}` sets up the path for a "comment" at the root, but only exposes "show". 
+
+**Note:** Normally, if you want an unmodified resource at the base path, you don't need to set options at all, just do `booster.resource('comment');`. However, with multiple options, booster *cannot* know that there is *also* a base path 'comment'. Thus, with multiple options, you **must** specify a blank options `{}` for base path. For example:
+
+````JavaScript
+booster.resource("post");
+booster.resource('comment',{parent:"post"},{}); // the second one is like booster.resource('comment');
+````
+
 
 ### Controllers
 The default controller provides the standard actions: index, show, create, update, patch, destroy. It interacts with the models of the same name (see *models*, below), and lists all of them, shows one, creates a new one, updates an existing one, or destroys one.
