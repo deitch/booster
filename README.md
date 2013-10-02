@@ -515,6 +515,8 @@ Notice that the resource itself is still `comment`, but the path does not includ
 ### Controllers
 The default controller provides the standard actions: index, show, create, update, patch, destroy. It interacts with the models of the same name (see *models*, below), and lists all of them, shows one, creates a new one, updates an existing one, or destroys one.
 
+#### Customizing and Eliminating Actions
+
 If you want to override one or more of the actions, just create a file with that name in *controllerPath* directory, either the default path or the one you provided when initializing booster. Each function should match express route signature. If you want to eliminate a route entirely, override it with a `null`. See the example below.
 
 ````JavaScript
@@ -529,14 +531,21 @@ module.exports = {
 };
 ````
 
-You can also take a shortcut to eliminating a route, using the `except` configuration parameter:
+##### Shortcuts
+
+You can also take a shortcut to eliminating a route, using the `except` and `only` configuration parameter:
 
 ````JavaScript
 booster.resource('post',{except:"index"}); // will create all the routes except GET /post
 booster.resource('post',{except:["update","patch"]}); // will create all the routes except PATCH /post/:post and PUT /post/:post
+booster.resource('post',{only:"index"}); // will eliminate all the routes except GET /post
+booster.resource('post',{only:["update","patch"]}); // will eliminate all the routes except PATCH /post/:post and PUT /post/:post
 ````
 
-Note that if you are eliminating only one, you can put it in an array, or just as a string.
+Note that if you are eliminating just one route, or keeping just one route, you can put it in an array, or just as a string.
+
+If you use both `only` and `except`, the `except` **will be ignored**. In English, `only` means, "only this and no others", while `except` means, "all the others except this". These are mutually conflicting.
+
 
 #### What does the default controller do?
 Well, it looks like this but with real error-handling. Look at the source code in github if you want the real nitty-gritty.

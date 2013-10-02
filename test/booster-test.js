@@ -183,6 +183,91 @@ describe('booster',function () {
 					],done);
 				});
 			});
+
+			describe('with multiple only-rules', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{only:["index","show"]});
+					r = request(app);
+					done();
+				});
+				it('should remove POST',function (done) {
+					r.post('/post').expect(404,done);
+				});
+				it('should remove PATCH',function (done) {
+					r.patch('/post/1').expect(404).end(done);
+				});
+				it('should remove PUT',function (done) {
+					r.put('/post/1').expect(404).end(done);
+				});
+				it('should remove DELETE',function (done) {
+					r.put('/post/1').expect(404).end(done);
+				});
+				it('should map GET index',function (done) {
+					r.get('/post').expect(200,db.data("post"),done);
+				});
+				it('should map GET show',function (done) {
+					r.get('/post/1').expect(200,db.data("post",0),done);
+				});
+			});
+			describe('with single only-rules', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{only:"index"});
+					r = request(app);
+					done();
+				});
+				it('should remove POST',function (done) {
+					r.post('/post').expect(404,done);
+				});
+				it('should remove PATCH',function (done) {
+					r.patch('/post/1').expect(404).end(done);
+				});
+				it('should remove PUT',function (done) {
+					r.put('/post/1').expect(404).end(done);
+				});
+				it('should remove DELETE',function (done) {
+					r.put('/post/1').expect(404).end(done);
+				});
+				it('should remove GET show',function (done) {
+					r.get('/post/1').expect(404,done);
+				});
+				it('should map GET index',function (done) {
+					r.get('/post').expect(200,db.data("post"),done);
+				});
+			});
+			describe('with except and only', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{only:"index",except:"post"});
+					r = request(app);
+					done();
+				});			  
+				it('should remove POST',function (done) {
+					r.post('/post').expect(404,done);
+				});
+				it('should remove PATCH',function (done) {
+					r.patch('/post/1').expect(404).end(done);
+				});
+				it('should remove PUT',function (done) {
+					r.put('/post/1').expect(404).end(done);
+				});
+				it('should remove DELETE',function (done) {
+					r.put('/post/1').expect(404).end(done);
+				});
+				it('should remove GET show',function (done) {
+					r.get('/post/1').expect(404,done);
+				});
+				it('should map GET index',function (done) {
+					r.get('/post').expect(200,db.data("post"),done);
+				});
+			});
 			describe('resource as property', function(){
 				before(function (done) {
 					app = this.app = express();
