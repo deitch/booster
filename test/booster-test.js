@@ -94,6 +94,49 @@ describe('booster',function () {
 					r.del('/post/12345').expect(404).end(done);
 				});
 			});
+			describe('single path with different name', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{name:"poster"});
+					r = request(app);
+					done();
+				});
+				it('should map LIST',function (done) {
+					r.get('/poster').expect(200,done);
+				});
+				it('should map GET',function (done) {
+					r.get('/poster/1').expect(200,db.data("post",0)).end(done);
+				});
+				it('should map PUT',function (done) {
+					var rec = {title:"a title",content:"nowfoo"};
+					async.series([
+						function (cb) {r.put('/poster/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/poster/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+					],done);
+				});
+				it('should map PATCH',function (done) {
+					var rec = {content:"nowfoo"};
+					async.series([
+						function (cb) {r.patch('/poster/1').send(rec).expect(200,cb);},
+						function (cb) {r.get('/poster/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+					],done);
+				});
+				it('should map POST',function (done) {
+					var newrec = {content:"new content",title:"Fancy Title"};
+					async.waterfall([
+						function (cb) {r.post('/poster').send(newrec).expect(201,cb);},
+						function (res,cb) {r.get('/poster/'+res.text).expect(200,_.extend({},newrec,{id:res.text}),cb);}
+					],done);
+				});
+				it('should map DELETE',function (done) {
+					async.series([
+						function (cb) {r.del('/poster/1').expect(200,cb);},
+						function (cb) {r.get('/poster/1').expect(404,cb);}
+					],done);
+				});
+			});
 			describe('with multiple exception', function(){
 				before(function (done) {
 					app = this.app = express();
@@ -180,7 +223,6 @@ describe('booster',function () {
 					],done);
 				});
 			});
-
 			describe('with multiple only-rules', function(){
 				before(function (done) {
 					app = this.app = express();
@@ -316,6 +358,88 @@ describe('booster',function () {
 				it('should map LIST comment',function (done) {
 					r.get('/comment').expect(200,db.data("comment"),done);
 				});
+			});
+			
+			describe('multiple paths with different name', function(){
+				before(function (done) {
+					app = this.app = express();
+					app.use(express.bodyParser());
+					booster.init({db:db,app:app});
+					booster.resource('post',{name:"poster"},{});
+					r = request(app);
+					done();
+				});
+				describe('unchanged path', function(){
+					it('should map LIST',function (done) {
+						r.get('/post').expect(200,done);
+					});
+					it('should map GET',function (done) {
+						r.get('/post/1').expect(200,db.data("post",0)).end(done);
+					});
+					it('should map PUT',function (done) {
+						var rec = {title:"a title",content:"nowfoo"};
+						async.series([
+							function (cb) {r.put('/post/1').send(rec).expect(200,cb);},
+							function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+						],done);
+					});
+					it('should map PATCH',function (done) {
+						var rec = {content:"nowfoo"};
+						async.series([
+							function (cb) {r.patch('/post/1').send(rec).expect(200,cb);},
+							function (cb) {r.get('/post/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+						],done);
+					});
+					it('should map POST',function (done) {
+						var newrec = {content:"new content",title:"Fancy Title"};
+						async.waterfall([
+							function (cb) {r.post('/post').send(newrec).expect(201,cb);},
+							function (res,cb) {r.get('/post/'+res.text).expect(200,_.extend({},newrec,{id:res.text}),cb);}
+						],done);
+					});
+					it('should map DELETE',function (done) {
+						async.series([
+							function (cb) {r.del('/post/1').expect(200,cb);},
+							function (cb) {r.get('/post/1').expect(404,cb);}
+						],done);
+					});				
+				});
+				describe('changed path', function(){
+					it('should map LIST',function (done) {
+						r.get('/poster').expect(200,done);
+					});
+					it('should map GET',function (done) {
+						r.get('/poster/1').expect(200,db.data("post",0)).end(done);
+					});
+					it('should map PUT',function (done) {
+						var rec = {title:"a title",content:"nowfoo"};
+						async.series([
+							function (cb) {r.put('/poster/1').send(rec).expect(200,cb);},
+							function (cb) {r.get('/poster/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+						],done);
+					});
+					it('should map PATCH',function (done) {
+						var rec = {content:"nowfoo"};
+						async.series([
+							function (cb) {r.patch('/poster/1').send(rec).expect(200,cb);},
+							function (cb) {r.get('/poster/1').expect(200,_.extend({},db.data("post",0),rec),cb);}
+						],done);
+					});
+					it('should map POST',function (done) {
+						var newrec = {content:"new content",title:"Fancy Title"};
+						async.waterfall([
+							function (cb) {r.post('/poster').send(newrec).expect(201,cb);},
+							function (res,cb) {r.get('/poster/'+res.text).expect(200,_.extend({},newrec,{id:res.text}),cb);}
+						],done);
+					});
+					it('should map DELETE',function (done) {
+						async.series([
+							function (cb) {r.del('/poster/1').expect(200,cb);},
+							function (cb) {r.get('/poster/1').expect(404,cb);}
+						],done);
+					});				
+				});
+
 			});
 		});
 		describe('without body parser', function(){
@@ -723,7 +847,7 @@ describe('booster',function () {
 						function (res,cb) {r.get('/comment/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
 					],done);
 				});
-			});
+			});			
 		});
 		describe('with controllers',function () {
 			before(function (done) {

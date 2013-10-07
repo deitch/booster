@@ -178,6 +178,23 @@ You could simply do:
 
 If you *do* specify a `base` on a specific resource *after* already specifying the global `base` in `init()`, the resource-specific `base` will override the global one.
 
+##### Different path name
+Sometimes, you want to name your resource one thing, while the path to it should be something else. This is useful when you have multiple paths to a resource, or if the actual name of the path might conflict with an existing resource. 
+
+For example, what if you wanted to have a resource called 'user' under a 'post', but it is different than the actual user resource.
+
+    GET       /post             			post#index()
+    GET       /post/:post		    			post#show()
+		GET				/post/:post/user				diffuser#index()
+		GET				/post/:post/user/:user	diffuser#show()
+
+To enable it, you use the `name` option:
+
+    booster.resource('diffuser',{parent:'post',name:'user'});
+
+This will create the above paths. Note that the name of the parameter will be `:user` and not `:diffuser`.
+However, it will expect a controller file, if any, to be named `diffuser.js`, since that is the name of the resource.
+
 ##### Nested Resource
 If you want to nest a resource, like in the example above, you just need to pass a `parent` option:
 
