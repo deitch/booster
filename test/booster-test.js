@@ -93,6 +93,53 @@ describe('booster',function () {
 				it('should 404 DELETE for absurd ID',function (done) {
 					r.del('/post/12345').expect(404).end(done);
 				});
+				describe('with extension', function(){
+					it('should map LIST',function (done) {
+						r.get('/post.json').expect(200,db.data("post")).end(done);
+					});
+					it('should return 404 for unknown resource', function(done){
+					  r.get('/poster.json').expect(404,done);
+					});
+					it('should map GET',function (done) {
+						r.get('/post/1.json').expect(200,db.data("post",0)).end(done);
+					});
+					it('should return 404 when GET for absurd ID',function (done) {
+						r.get('/post/12345.json').expect(404).end(done);
+					});
+					it('should map PUT',function (done) {
+						var rec = {title:"nowfoo"};
+						async.series([
+							function (cb) {r.put('/post/1.json').send(rec).expect(200,cb);},
+							function (cb) {r.get('/post/1.json').expect(200,_.extend(rec,{id:"1"}),cb);}
+						],done);
+					});
+					it('should map PATCH',function (done) {
+						var rec = {title:"nowfoo"};
+						async.series([
+							function (cb) {r.patch('/post/1.json').send(rec).expect(200,cb);},
+							function (cb) {r.get('/post/1.json').expect(200,_.extend({},db.data("post",0),rec),cb);}
+						],done);
+					});
+					it('should return 404 for non-existent PUT for absurd ID',function (done) {
+						r.put('/post/12345.json').send({title:"nowfoo"}).expect(404).end(done);
+					});
+					it('should map POST',function (done) {
+						var newPost = {title:"new post",content:"messy"};
+						async.waterfall([
+							function (cb) {r.post('/post.json').send(newPost).expect(201,cb);},
+							function (res,cb) {r.get('/post/'+res.text+'.json').expect(200,_.extend({},newPost,{id:res.text}),cb);}
+						],done);
+					});
+					it('should map DELETE',function (done) {
+						async.series([
+							function (cb) {r.del('/post/1.json').expect(200,cb);},
+							function (cb) {r.get('/post/1.json').expect(404,cb);}
+						],done);
+					});
+					it('should 404 DELETE for absurd ID',function (done) {
+						r.del('/post/12345.json').expect(404).end(done);
+					});				  
+				});
 			});
 			describe('single path with different name', function(){
 				before(function (done) {

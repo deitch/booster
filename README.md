@@ -142,6 +142,11 @@ The first (and only required) argument to `booster.resource()` is the name of th
 		ca/     -> INVALID
 
 
+#### Format extension
+Many apps, rather than having the path `/comment/:comment` prefer the format `/commen/:comment.:format?`. This means that both `/comment/1` **and** `/comment/1.json` would be acceptable.
+
+booster supports the format extension out of the box. If you need access to the parameter in your controller, it is in `req.params.format`. Of course, it is optional!
+
 #### Optional options
 `opts` is just a plain old JavaScript object with options. What goes into those options? That depends what you want to do with this resource and what path it should have.
 
