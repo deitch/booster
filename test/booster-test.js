@@ -747,11 +747,14 @@ describe('booster',function () {
 				it('should map nested GET',function (done) {
 					r.get('/post/1/comment/1').expect(200,db.data("comment",0)).end(done);
 				});
+				it('should not map nested GET with different parent',function (done) {
+					r.get('/post/1/comment/3').expect(404,done);
+				});
 				it('should return 404 when GET for absurd ID of nested item',function (done) {
 					r.get('/post/1/comment/12345').expect(404).end(done);
 				});
 				it('should map nested PUT',function (done) {
-					var rec = {comment:"new comment"};
+					var rec = {comment:"new comment",post:"1"};
 					async.series([
 						function (cb) {r.put('/post/1/comment/1').send(rec).expect(200,cb);},
 						function (cb) {r.get('/post/1/comment/1').expect(200,_.extend({},rec,{id:"1"}),cb);}
@@ -768,7 +771,7 @@ describe('booster',function () {
 					r.put('/post/1/comment/12345').send({title:"nowfoo"}).expect(404).end(done);
 				});
 				it('should map nested POST',function (done) {
-					var newPost = {comment:"new comment"};
+					var newPost = {comment:"new comment",post:"1"};
 					async.waterfall([
 						function (cb) {r.post('/post/1/comment').send(newPost).expect(201,cb);},
 						function (res,cb) {r.get('/post/1/comment/'+res.text).expect(200,_.extend({},newPost,{id:res.text}),cb);}
