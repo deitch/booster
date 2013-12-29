@@ -742,7 +742,7 @@ describe('booster',function () {
 			});
 			describe('regular', function(){
 				it('should map nested LIST',function (done) {
-					r.get('/post/1/comment').expect(200,db.data("comment")).end(done);
+					r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"})).end(done);
 				});
 				it('should map nested GET',function (done) {
 					r.get('/post/1/comment/1').expect(200,db.data("comment",0)).end(done);
