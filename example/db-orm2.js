@@ -8,9 +8,9 @@ orm = require('orm'), db, settings = require('./orm2-settings'), DATA = {
 	  {title:"bar",content:"phd",other:"other field"}
 	],
 	comment: [
-		{post:1,comment:"First comment on 1st post"},
-		{post:1,comment:"Second comment on 1st post"},
-		{post:3,comment:"First comment on 3rd post"}
+		{post_id:1,comment:"First comment on 1st post"},
+		{post_id:1,comment:"Second comment on 1st post"},
+		{post_id:3,comment:"First comment on 3rd post"}
 	]
 }, models = {}, reset = function (callback) {
 	// remove all existing ones and create new
@@ -19,7 +19,7 @@ orm = require('orm'), db, settings = require('./orm2-settings'), DATA = {
 		function(cb) {db.sync(cb);},
 		function(cb) {models.post.create(DATA.post,cb);},
 		function(cb) {
-			models.comment.create(DATA.comment[0],cb);
+			models.comment.create(DATA.comment,cb);
 		}
 	],callback);
 };
@@ -29,7 +29,7 @@ orm.connect(settings.database,function(err,d){
 		throw err;
 	}
 	db = d;
-	db.settings.set("properties.association_key","{name}");
+	//db.settings.set("properties.association_key","{name}");
 	models.post = db.define("post",{
 		title: String,
 		content: String,
@@ -42,32 +42,36 @@ orm.connect(settings.database,function(err,d){
 	reset();
 });
 
-/*
- - create the database
- - on close app, remove the database
- - set up reset - drop tables, create tables
- - relational between comment and post?
- - load up the tables
- */
-
 
 module.exports = {
 	get: function (name,key,callback) {
-		var d = [], ret;
 		// might have an array of keys
-		models[name].get(key,function (err,items) {
-			switch((items||[]).length) {
-				case 0:
-					ret = null;
-					break;
-				case 1:
-					ret = d[0];
-					break;
-				default:
-					ret = d;
-					break;
+		async.map([].concat(key),function (k,cb) {
+			models[name].get(k,function (err,item) {
+				if (err) {
+					cb(err);
+				} else {
+					cb(null,item);
+				}
+			});
+		},function (err,results) {
+			var ret;
+			if (err) {
+				callback(err);
+			} else {
+				switch((results||[]).length) {
+					case 0:
+						ret = null;
+						break;
+					case 1:
+						ret = results[0];
+						break;
+					default:
+						ret = results;
+						break;
+				}
+				callback(null,ret);
 			}
-			callback(null,ret);
 		});
 		return(this);
 	},

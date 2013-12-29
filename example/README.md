@@ -29,6 +29,25 @@ The example comes with a few posts and comments pre-defined. Look at the file `.
 
 Stopping the program and restarting with `node ./server.js` will reset the data.
 
+
+## Format of the objects
+All `POST` and `PUT` and `PATCH` expect JSON,and all `GET` send JSON.
+
+### post
+A post looks like: 
+
+`{id:1,title:"A new title",content:"Lots of interesting content", other:"Some other data"}`
+
+### comment
+A comment looks like:
+
+`{id:1,comment:"This is my comment on your post",post:1}`
+
+Except that if you run it in orm2 mode, the relational field is a little different (see below):
+
+`{id:1,comment:"This is my comment on your post",post_id:1}`
+
+
 ## Using a relational database and orm2
 If you prefer to use a relational database for the data, a version of the example uses [orm2](https://github.com/dresende/node-orm2) to store the data.
 
@@ -42,5 +61,16 @@ In order to use orm2, there are a few steps you need to take.
 6. create a new database called `boosterexample` (or whatever you put in `./orm-settings.js`)
 7. Start the program with the orm2 option: `node ./server.js orm2`
 
-Everything else is as normal.
+One other slight change. orm2 does **not** like it when the actual name of a relational field is the same as the name of the table it points to. This makes doing the following impossible:
+
+`POST /post/1/comment {comment:"abc",post:1}`
+
+Since the *table* comment relates to is called "post", and the linking (relational) *field* inside comment os called "post", it all goes haywire inside orm2.
+
+So, if you are running this example in orm2 mode, be sure to use the following syntax:
+
+`POST /post/1/comment {comment:"abc",post_id:1}`
+
+
+
 
