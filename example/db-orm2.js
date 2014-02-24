@@ -8,9 +8,9 @@ orm = require('orm'), db, settings = require('./orm2-settings'), DATA = {
 	  {title:"bar",content:"phd",other:"other field"}
 	],
 	comment: [
-		{post_id:1,comment:"First comment on 1st post"},
-		{post_id:1,comment:"Second comment on 1st post"},
-		{post_id:3,comment:"First comment on 3rd post"}
+		{post:1,comment:"First comment on 1st post"},
+		{post:1,comment:"Second comment on 1st post"},
+		{post:3,comment:"First comment on 3rd post"}
 	]
 }, models = {}, reset = function (callback) {
 	// remove all existing ones and create new
@@ -38,7 +38,7 @@ orm.connect(settings.database,function(err,d){
 	models.comment = db.define("comment",{
 		comment: String
 	});
-	models.comment.hasOne("post",models.post,{required:true});
+	models.comment.hasOne("post",models.post,{required:true,field:"post",accessor:"Post"});
 	reset();
 });
 

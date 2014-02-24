@@ -147,6 +147,80 @@ Many apps, rather than having the path `/comment/:comment` prefer the format `/c
 
 booster supports the format extension out of the box. If you need access to the parameter in your controller, it is in `req.params.format`. Of course, it is optional!
 
+#### Responses
+Each type of http verb gives the appropriate response, with some options to change globally or per-request.
+
+|Verb|Success HTTP Code|Success Body|Failure Code|Failure Body|
+|----|-----------------|------------|------------|------------|
+|`GET` index|200|Array of objects|400,404|Error Message or blank|
+|`GET` show|200|Object or array of objects|400,404|Error Message or blank|
+|`POST`|201|ID of created object|400,404|Error message or blank|
+|`PUT`|200|ID of updated object *OR* updated object|400,404|Error message or blank|
+|`PATCH`|200|ID of updated object *OR* updated object)|400,404|Error message or blank|
+|`DELETE`|200|ID of deleted object|400,404|Error message or blank|
+
+##### GET after PUT/PATCH
+`PUT` and `PATCH` return the ID of the updated object in the body of the response. Sometimes, though, you prefer to have the request return the updated object in its entirety in the body.
+
+There has been extensive debate among the REST community which is the correct response. booster is smart enough not to take sides in this debate and support both options. By default, successful `PUT`/`PATCH` return the ID of the updated object as the body of the response.
+
+If you want a successful `PUT`/`PATCH` to return the body - as if you did the successful `PUT`/`PATCH` and then followed it up with a `GET` - you have 3 options:
+
+* global: by making it the default server-side in your booster initialization settings.
+
+````JavaScript
+booster.init({sendObject:true});
+````
+
+* param: as part of the request in the URL, add `sendObject=true` to the request.
+
+````
+PUT http://server.com/api/user/1?sendObject=true
+````
+
+* header: as part of the request in the headers, add a header `X-Booster-SendObject: true` to the request.
+
+````
+X-Booster-SendObject: true
+
+PUT http://server.com/api/user/1
+````
+
+As a rule of thumb:
+
+1. URL param takes precedence over...
+2. HTTP header, which takes precedence over...
+3. booster initialization setting, which takes precedence over...
+4. booster default
+
+The following table lays out the results of a `PUT`/`PATCH`:
+
+
+|booster init|http header|param|send object?|
+|---|---|---|---|
+||||NO|
+|||`sendObject=true`|YES|
+||`X-Booster-SendObject: true`||YES|
+||`X-Booster-SendObject: true`|`sendObject=true`|YES|
+||`X-Booster-SendObject: false`|`sendObject=true`|YES|
+||`X-Booster-SendObject: true`|`sendObject=false`|NO|
+||`X-Booster-SendObject: true`|`sendObject=false`|NO|
+|{sendObject:true}|||YES|
+|{sendObject:true}|`X-Booster-SendObject: false`||NO|
+|{sendObject:true}||`sendObject=false`|NO|
+|{sendObject:true}|`X-Booster-SendObject: false`|`sendObject=true`|YES|
+|{sendObject:true}|`X-Booster-SendObject: true`|`sendObject=false`|NO|
+|{sendObject:false}|||NO|
+|{sendObject:false}||`sendObject=true`|YES|
+|{sendObject:false}|`X-Booster-SendObject: true`||YES|
+|{sendObject:false}|`X-Booster-SendObject: true`|`sendObject=true`|YES|
+|{sendObject:false}|`X-Booster-SendObject: false`|`sendObject=true`|YES|
+|{sendObject:false}|`X-Booster-SendObject: true`|`sendObject=false`|NO|
+|{sendObject:false}|`X-Booster-SendObject: true`|`sendObject=false`|NO|
+
+NOTE: booster init setting `{sendObject:false}` is the same as not setting an init param at all.
+
+
 #### Optional options
 `opts` is just a plain old JavaScript object with options. What goes into those options? That depends what you want to do with this resource and what path it should have.
 

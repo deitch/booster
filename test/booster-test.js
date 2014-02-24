@@ -141,6 +141,195 @@ describe('booster',function () {
 					});				  
 				});
 			});
+			
+			describe('body object', function(){
+				describe('no init setting', function(){
+					before(function (done) {
+						app = this.app = express();
+						app.use(express.bodyParser());
+						booster.init({db:db,app:app});
+						booster.resource('post');
+						r = request(app);
+						done();
+					});
+					describe('PUT', function(){
+					  it('should send no body with no header or param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1').send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with no header but true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with true header but no param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with true header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send no body with true header and false param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=false').set("X-Booster-SendObject","true").send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with false header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').set("X-Booster-SendObject","false").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					});
+					describe('PATCH', function(){
+					  it('should send no body with no header or param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1').send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with no header but true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with true header but no param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with true header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send no body with true header and false param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=false').set("X-Booster-SendObject","true").send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with false header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').set("X-Booster-SendObject","false").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					});
+				});
+				describe('init true', function(){
+					before(function (done) {
+						app = this.app = express();
+						app.use(express.bodyParser());
+						booster.init({db:db,app:app,sendObject:true});
+						booster.resource('post');
+						r = request(app);
+						done();
+					});
+					describe('PUT', function(){
+					  it('should send body with no header or param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1').send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with no header but true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with true header but no param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with true header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send no body with true header and false param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=false').set("X-Booster-SendObject","true").send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with false header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').set("X-Booster-SendObject","false").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					});
+					describe('PATCH', function(){
+					  it('should send body with no header or param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1').send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with no header but true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with true header but no param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with true header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send no body with true header and false param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=false').set("X-Booster-SendObject","true").send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with false header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').set("X-Booster-SendObject","false").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					});
+				});
+				describe('init false', function(){
+					before(function (done) {
+						app = this.app = express();
+						app.use(express.bodyParser());
+						booster.init({db:db,app:app,sendObject:false});
+						booster.resource('post');
+						r = request(app);
+						done();
+					});
+					describe('PUT', function(){
+					  it('should send no body with no header or param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1').send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with no header but true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with true header but no param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send body with true header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					  it('should send no body with true header and false param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=false').set("X-Booster-SendObject","true").send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with false header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.put('/post/1?sendObject=true').set("X-Booster-SendObject","false").send(rec).expect(200,_.extend(rec,{id:"1"}),done);
+					  });
+					});
+					describe('PATCH', function(){
+					  it('should send no body with no header or param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1').send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with no header but true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with true header but no param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send body with true header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').set("X-Booster-SendObject","true").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					  it('should send no body with true header and false param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=false').set("X-Booster-SendObject","true").send(rec).expect(200,"1",done);
+					  });
+					  it('should send body with false header and true param', function(done){
+							var rec = {title:"nowfoo"};
+							r.patch('/post/1?sendObject=true').set("X-Booster-SendObject","false").send(rec).expect(200,_.extend({},db.data("post",0),rec),done);
+					  });
+					});
+				});
+			});			
 			describe('single path with different name', function(){
 				before(function (done) {
 					app = this.app = express();
