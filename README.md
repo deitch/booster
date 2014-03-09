@@ -157,7 +157,7 @@ Each type of http verb gives the appropriate response, with some options to chan
 |`POST`|201|ID of created object|400,404|Error message or blank|
 |`PUT`|200|ID of updated object *OR* updated object|400,404|Error message or blank|
 |`PATCH`|200|ID of updated object *OR* updated object)|400,404|Error message or blank|
-|`DELETE`|200|ID of deleted object|400,404|Error message or blank|
+|`DELETE`|204||400,404|Error message or blank|
 
 ##### GET after PUT/PATCH
 `PUT` and `PATCH` return the ID of the updated object in the body of the response. Sometimes, though, you prefer to have the request return the updated object in its entirety in the body.
@@ -713,7 +713,7 @@ module.exports = {
 	},
 	destroy: function(req,res,next) {
 		model.destroy(req.param.id,function(){
-			res.send(200);
+			res.send(204);
 		});
 	}
 };

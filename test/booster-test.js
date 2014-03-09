@@ -86,7 +86,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.del('/post/1').expect(204,cb);},
 						function (cb) {r.get('/post/1').expect(404,cb);}
 					],done);
 				});
@@ -132,7 +132,7 @@ describe('booster',function () {
 					});
 					it('should map DELETE',function (done) {
 						async.series([
-							function (cb) {r.del('/post/1.json').expect(200,cb);},
+							function (cb) {r.del('/post/1.json').expect(204,cb);},
 							function (cb) {r.get('/post/1.json').expect(404,cb);}
 						],done);
 					});
@@ -368,7 +368,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/poster/1').expect(200,cb);},
+						function (cb) {r.del('/poster/1').expect(204,cb);},
 						function (cb) {r.get('/poster/1').expect(404,cb);}
 					],done);
 				});
@@ -411,7 +411,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.del('/post/1').expect(204,cb);},
 						function (cb) {r.get('/post/1').expect(404,cb);}
 					],done);
 				});
@@ -454,7 +454,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.del('/post/1').expect(204,cb);},
 						function (cb) {r.get('/post/1').expect(404,cb);}
 					],done);
 				});
@@ -635,7 +635,7 @@ describe('booster',function () {
 					});
 					it('should map DELETE',function (done) {
 						async.series([
-							function (cb) {r.del('/post/1').expect(200,cb);},
+							function (cb) {r.del('/post/1').expect(204,cb);},
 							function (cb) {r.get('/post/1').expect(404,cb);}
 						],done);
 					});				
@@ -670,7 +670,7 @@ describe('booster',function () {
 					});
 					it('should map DELETE',function (done) {
 						async.series([
-							function (cb) {r.del('/poster/1').expect(200,cb);},
+							function (cb) {r.del('/poster/1').expect(204,cb);},
 							function (cb) {r.get('/poster/1').expect(404,cb);}
 						],done);
 					});				
@@ -753,7 +753,7 @@ describe('booster',function () {
 			});
 			it('should map DELETE',function (done) {
 				async.series([
-					function (cb) {r.del('/1').expect(200,cb);},
+					function (cb) {r.del('/1').expect(204,cb);},
 					function (cb) {r.get('/1').expect(404,cb);}
 				],done);
 			});
@@ -807,7 +807,7 @@ describe('booster',function () {
 					});
 					it('should map DELETE',function (done) {
 						async.series([
-							function (cb) {r.del(path+'/1').expect(200,cb);},
+							function (cb) {r.del(path+'/1').expect(204,cb);},
 							function (cb) {r.get(path+'/1').expect(404,cb);}
 						],done);
 					});
@@ -852,7 +852,7 @@ describe('booster',function () {
 					});
 					it('should map DELETE',function (done) {
 						async.series([
-							function (cb) {r.del(path+'/1').expect(200,cb);},
+							function (cb) {r.del(path+'/1').expect(204,cb);},
 							function (cb) {r.get(path+'/1').expect(404,cb);}
 						],done);
 					});
@@ -908,7 +908,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del(path+'/1').expect(200,cb);},
+						function (cb) {r.del(path+'/1').expect(204,cb);},
 						function (cb) {r.get(path+'/1').expect(404,cb);}
 					],done);
 				});
@@ -968,7 +968,7 @@ describe('booster',function () {
 				});
 				it('should map nested DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/post/1/comment/1').expect(200,cb);},
+						function (cb) {r.del('/post/1/comment/1').expect(204,cb);},
 						function (cb) {r.get('/post/1/comment/1').expect(404,cb);}
 					],done);
 				});
@@ -1128,7 +1128,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE to default when no override',function (done) {
 					async.series([
-						function (cb) {r.del('/post/1').expect(200,cb);},
+						function (cb) {r.del('/post/1').expect(204,cb);},
 						function (cb) {r.get('/post/1').expect(404,cb);}
 					],done);
 				});			
@@ -1386,7 +1386,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/different/1').expect(200,cb);},
+						function (cb) {r.del('/different/1').expect(204,cb);},
 						function (cb) {r.get('/different/1').expect(404,cb);}
 					],done);
 				});
@@ -1423,7 +1423,7 @@ describe('booster',function () {
 				});
 				it('should map DELETE',function (done) {
 					async.series([
-						function (cb) {r.del('/'+resource+'/1').expect(200,cb);},
+						function (cb) {r.del('/'+resource+'/1').expect(204,cb);},
 						function (cb) {r.get('/'+resource+'/1').expect(404,cb);}
 					],done);
 				});
