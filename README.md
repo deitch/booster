@@ -147,6 +147,12 @@ Many apps, rather than having the path `/comment/:comment` prefer the format `/c
 
 booster supports the format extension out of the box. If you need access to the parameter in your controller, it is in `req.params.format`. Of course, it is optional!
 
+#### Search Params
+When you do a `GET` to a resource collection - e.g. `GET /comment` as opposed to `GET /comment/1` - you can pass search parameters to the query. 
+
+**All** query parameters passed to the request will be passed to `model.find()`, and by extension `db.find()`, **except** for ones specific to the controller. Controller parameters always start with `$b.`, e.g. '$b.csview'. 
+
+
 #### Responses
 Each type of http verb gives the appropriate response, with some options to change globally or per-request.
 
@@ -1143,14 +1149,14 @@ user.get("10",function(err,res){
 });
 ````
 
-Second, the default controllers (**not** the models), filter it, unless you **explicitly** request it not to, using the query parameter `_csview`. Just set it to the value you want, e.g. `_csview=private` will show fields tagged `"private"` and those tagged `"public"` (or untagged, which is the same thing), but **not** those tagged `"secret"`. Not setting `_csview` (or setting it to `_csview=public` will show public fields only.
+Second, the default controllers (**not** the models), filter it, unless you **explicitly** request it not to, using the query parameter `$b.csview`. Just set it to the value you want, e.g. `$b.csview=private` will show fields tagged `"private"` and those tagged `"public"` (or untagged, which is the same thing), but **not** those tagged `"secret"`. Not setting `$b.csview` (or setting it to `$b.csview=public` will show public fields only.
 
-Sending `_csview=secret` will be ignored!
+Sending `$b.csview=secret` will be ignored!
 
 Controllers:
 ````
 GET /user/:user // defaults to getting just public or untagged fields
-GET /user/:user&_csview=private // returns private and public fields
+GET /user/:user&$b.csview=private // returns private and public fields
 ````
 
 

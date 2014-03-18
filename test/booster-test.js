@@ -51,6 +51,15 @@ describe('booster',function () {
 				it('should map LIST',function (done) {
 					r.get('/post').expect(200,db.data("post")).end(done);
 				});
+				it('should map SEARCH for exact match',function (done) {
+					r.get('/post').query({title:"foobar"}).expect(200,db.data("post",{title:"foobar"})).end(done);
+				});
+				it('should map SEARCH for partial match',function (done) {
+					r.get('/post').query({title:"foo"}).expect(200,db.data("post",{title:"foo"})).end(done);
+				});
+				it('should map SEARCH for ignore-case match',function (done) {
+					r.get('/post').query({title:"FOObAR"}).expect(200,db.data("post",{title:"foobar"})).end(done);
+				});
 				it('should return 404 for unknown resource', function(done){
 				  r.get('/poster').expect(404,done);
 				});
@@ -1471,25 +1480,25 @@ describe('booster',function () {
 				});
 				describe('via controllers', function(){
 					describe('for a LIST',function () {
-						it('should get public data only without _csview', function(done){
+						it('should get public data only without csview', function(done){
 							r.get('/user').expect(200,publicdata).end(done);
 						});
-						it('should get private data with _csview=private', function(done){
-							r.get('/user').query({_csview:"private"}).expect(200,privatedata).end(done);
+						it('should get private data with csview=private', function(done){
+							r.get('/user').query({'$b.csview':"private"}).expect(200,privatedata).end(done);
 						});
-						it('should reject request with _csview=secret', function(done){
-							r.get('/user').query({_csview:"secret"}).expect(400).end(done);
+						it('should reject request with csview=secret', function(done){
+							r.get('/user').query({'$b.csview':"secret"}).expect(400).end(done);
 						});
 					});
 					describe('for a GET', function(){
-						it('should get public data only without _csview', function(done){
+						it('should get public data only without csview', function(done){
 							r.get('/user/1').expect(200,publicdata[0]).end(done);
 						});
-						it('should get private data with _csview=private', function(done){
-							r.get('/user/1').query({_csview:"private"}).expect(200,privatedata[0]).end(done);
+						it('should get private data with csview=private', function(done){
+							r.get('/user/1').query({'$b.csview':"private"}).expect(200,privatedata[0]).end(done);
 						});
-						it('should reject request with _csview=secret', function(done){
-							r.get('/user/1').query({_csview:"secret"}).expect(400).end(done);
+						it('should reject request with csview=secret', function(done){
+							r.get('/user/1').query({'$b.csview':"secret"}).expect(400).end(done);
 						});
 					});
 				  
