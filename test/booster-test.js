@@ -60,6 +60,9 @@ describe('booster',function () {
 				it('should map SEARCH for ignore-case match',function (done) {
 					r.get('/post').query({title:"FOObAR"}).expect(200,db.data("post",{title:"foobar"})).end(done);
 				});
+				it('should return empty set for SEARCH without results',function (done) {
+					r.get('/post').query({title:"ABCDEFG"}).expect(200,[]).end(done);
+				});
 				it('should return 404 for unknown resource', function(done){
 				  r.get('/poster').expect(404,done);
 				});
