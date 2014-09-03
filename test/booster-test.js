@@ -574,6 +574,18 @@ describe('booster',function () {
 				it('should GET resource as a property', function(done){
 				  r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"}),done);
 				});
+				it('should map SEARCH for exact match',function (done) {
+					r.get('/post/1/comment').query({comment:"First comment on 1st post"}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
+				});
+				it('should map SEARCH for partial match',function (done) {
+					r.get('/post/1/comment').query({comment:"irst comment on 1st"}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
+				});
+				it('should map SEARCH for ignore-case match',function (done) {
+					r.get('/post/1/comment').query({comment:"irST commeNT on 1st"}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
+				});
+				it('should return 404 for SEARCH without results',function (done) {
+					r.get('/post/1/comment').query({comment:"ABCDEFG"}).expect(404,done);
+				});
 				it('should reject SET resource if the field for self is not the same as given ID', function(done){
 					var rec = [{post:"1",comment:"First comment on 1st post"},{post:"2",comment:"Third comment on 1st post"}];
 					r.put('/post/1/comment').send(rec).expect(400,"field post in records must equal path value",done);
