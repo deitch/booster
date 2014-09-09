@@ -957,6 +957,9 @@ describe('booster',function () {
 				it('should map nested LIST',function (done) {
 					r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"})).end(done);
 				});
+				it('should map nested LIST for multiple parent',function (done) {
+					r.get('/post/1,3/comment').expect(200,db.data("comment",{post:["1","3"]})).end(done);
+				});
 				it('should map nested GET',function (done) {
 					r.get('/post/1/comment/1').expect(200,db.data("comment",0)).end(done);
 				});
