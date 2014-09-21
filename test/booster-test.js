@@ -1777,6 +1777,22 @@ describe('booster',function () {
 					it('should accept patch with no conflict', function(done){
 			      r.patch('/combounique/1').type('json').send({lastname:"stevenson"}).expect(200,done);
 					});
+			    it('should reject patch to one field when it brings both fields into conflict', function(done){
+						async.series([
+							function (cb) {
+					      r.patch('/combounique/1').type('json').send({firstname:"jill"}).expect(200,cb);
+							},
+							function (cb) {
+					      r.patch('/combounique/1').type('json').send({lastname:"jones"}).expect(409,cb);
+							}
+						],function (err) {
+							if (err) {
+								throw(err);
+							} else {
+								done();
+							}
+						});
+			    });
 				});
 			});
 		});
