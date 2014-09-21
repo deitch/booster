@@ -1768,6 +1768,9 @@ describe('booster',function () {
 			    it('should reject patch with both fields conflict', function(done){
 			      r.patch('/combounique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,done);
 			    });
+			    it('should accept patch with both fields conflict if it is the same object', function(done){
+			      r.patch('/combounique/2').type('json').send({firstname:"jill",lastname:"jones"}).expect(200,done);
+			    });
 					it('should accept patch with first field conflict', function(done){
 			      r.patch('/combounique/1').type('json').send({firstname:"jill"}).expect(200,done);
 					});
