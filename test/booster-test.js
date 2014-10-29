@@ -1,5 +1,6 @@
-/*global before,beforeEach,after,describe,it */
+/*global before,beforeEach,describe,it */
 /*jslint node:true, debug:true, nomen:true */
+/*jshint unused:vars */
 var express = require('express'), _ = require('lodash'), request = require('supertest'), booster = require('../lib/booster'), 
 async = require('async'), should = require('should'), db = require('./resources/db'), path;
 
@@ -950,6 +951,8 @@ describe('booster',function () {
 				booster.resource('comment',{parent:'post'},{only:["index","show"]});
 				booster.resource('nestRequire',{parent:'post',parentProperty:true});
 				booster.resource('nestOptional',{parent:'post',parentProperty:true,parentDefault:true});
+				booster.resource('multiparent',{},{parent:'post'});
+				booster.resource('multichild',{},{parent:'multiparent'});
 				r = request(app);
 				done();
 			});
@@ -1082,6 +1085,26 @@ describe('booster',function () {
 						function(cb) {r.put('/post/1/nestOptional/1').send(newitem).type('json').expect(200,cb);},
 						function(res,cb) {r.get('/post/1/nestOptional/1').expect(200,_.extend({},newitem,{id:"1"}),cb);}
 					],done);
+				});
+			});
+			describe('parent has multiple paths', function(){
+				it('should map LIST at child base', function(done){
+					r.get('/multichild').expect(200,db.data("multichild")).end(done);
+				});
+				it('should map GET at child base', function(done){
+					r.get('/multichild/1').expect(200,db.data("multichild",0)).end(done);
+				});
+				it('should map LIST at parent base', function(done){
+					r.get('/multiparent/1/multichild').expect(200,db.data("multichild")).end(done);
+				});
+				it('should map GET at parent base', function(done){
+					r.get('/multiparent/1/multichild/1').expect(200,db.data("multichild",0)).end(done);
+				});
+				it('should map LIST at parent long', function(done){
+					r.get('/post/1/multiparent/1/multichild').expect(200,db.data("multichild")).end(done);
+				});
+				it('should map GET at parent long', function(done){
+					r.get('/post/1/multiparent/1/multichild/1').expect(200,db.data("multichild",0)).end(done);
 				});
 			});
 			describe('multiple options', function(){

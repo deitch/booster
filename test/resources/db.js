@@ -75,6 +75,12 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	combounique: [
 		{id:"1",firstname:"sam",lastname:"smith"},
 		{id:"2",firstname:"jill",lastname:"jones"}
+	],
+	multiparent: [
+		{id:"1",name:"multiparent 1",post:"1"}
+	],
+	multichild: [
+		{id:"1",name:"multichild 1",multiparent:"1"}
 	]
 }, IDFIELDS = {
 	different: "key"
