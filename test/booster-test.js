@@ -579,10 +579,10 @@ describe('booster',function () {
 					r.get('/post/1/comment').query({comment:"First comment on 1st post"}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
 				});
 				it('should map SEARCH for partial match',function (done) {
-					r.get('/post/1/comment').query({comment:"irst comment on 1st"}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
+					r.get('/post/1/comment').query({comment:"irst comment on 1st",_text:true}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
 				});
 				it('should map SEARCH for ignore-case match',function (done) {
-					r.get('/post/1/comment').query({comment:"irST commeNT on 1st"}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
+					r.get('/post/1/comment').query({comment:"irST commeNT on 1st",_text:true}).expect(200,db.data("comment",{comment:"First comment on 1st post"})).end(done);
 				});
 				it('should return 404 for SEARCH without results',function (done) {
 					r.get('/post/1/comment').query({comment:"ABCDEFG"}).expect(404,done);
