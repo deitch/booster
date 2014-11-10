@@ -19,7 +19,7 @@
 	],
 	"dependencies": {
     "lodash":">=1.3.1",
-    "searchjs": "0.1.x",
+    "searchjs": ">=0.3.2",
 		"async":"0.2"
 	},
 	"devDependencies": {
