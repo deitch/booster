@@ -26,8 +26,7 @@
 		"express":"3.x",
 		"should":"1.x",
 		"mocha":"1.x",
-		"supertest":"0.x",
-		"should":"1.2.x"
+		"supertest":"0.x"
 	},
 	"scripts": {
 		"test":"node_modules/.bin/mocha"
