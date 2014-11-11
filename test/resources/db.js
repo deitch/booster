@@ -81,6 +81,12 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	],
 	multichild: [
 		{id:"1",name:"multichild 1",multiparent:"1"}
+	],
+	integers: [
+		{id:"1",name:"one",index:10},
+		{id:"2",name:"two",index:12},
+		{id:"3",name:"three",index:18},
+		{id:"4",name:"four",index:20},
 	]
 }, IDFIELDS = {
 	different: "key"

@@ -1305,6 +1305,7 @@ describe('booster',function () {
 				booster.resource('singleunique'); // one unique field
 				booster.resource('doubleunique'); // two independent unique field
 				booster.resource('combounique'); // two independent unique field
+				booster.resource('integers'); // fields with integers
 				booster.model('only'); // just a model, no route
 				r = request(app);
 				done();
@@ -1819,6 +1820,24 @@ describe('booster',function () {
 							}
 						});
 			    });
+				});
+			});
+			describe.only('search by integer', function(){
+				var cutoff = 15, lt = [], gt = [];
+				before(function(){
+					_.each(db.data("integers"),function (item) {
+						if (item.index <= cutoff) {
+							lt.push(item);
+						} else {
+							gt.push(item);
+						}
+					});
+				});
+				it('should give correct results for less than match',function (done) {
+					r.get('/integers').query({index:{lt:cutoff}}).expect(200,lt).end(done);
+				});
+				it('should give correct results for greater than match',function (done) {
+					r.get('/integers').query({index:{gt:cutoff}}).expect(200,gt).end(done);
 				});
 			});
 		});

@@ -908,13 +908,15 @@ The `fields` is a list of all of the required fields and properties that are use
 * mutable: boolean, if the field can be changed by a client request. Default `true`
 * visible: this field is one of: public (visible to all), private (visible only for explicit private viewers), secret (never sent off the server)
 * validation: validations to which to subject this field
+* type: if this field should be a particular type. If it is, then when doing a `find()`, it will cast it to the appropriate type, if possible.
 
 Example: 
 ````JavaScript
 fields = {
 	id: {required: true, createoptional: true, mutable: false, visible: "public"},
 	name: {required: true, mutable:false, visible: "public", validation:["notblank","alphanumeric"]},
-	email: {required: true, mutable:true, visible: "public", validation:"email"}
+	email: {required: true, mutable:true, visible: "public", validation:"email"},
+	time: {required:true,mutable:true,type:"integer"}
 }
 ````
 
