@@ -1109,7 +1109,7 @@ describe('booster',function () {
 			});
 			describe('with controllers',function () {
 				beforeEach(function (done) {
-					booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers'});
+					booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers',filters:__dirname+'/resources/filters'});
 					booster.resource('post');
 					booster.resource('property');
 					booster.resource('filter');
@@ -1240,6 +1240,32 @@ describe('booster',function () {
 					  it('should use filter.global with last two', function(done){
 							var q = {"filter.all":"filter.all","filter.show":"filter.show"};
 					    r.get('/filter/1').query(q).expect(403,"filter.all",done);
+					  });
+					});
+				});
+				describe('global filters', function(){
+				  it('should allow through request without block', function(done){
+				    r.get('/filter/1').expect(200,db.data("filter",0),done);
+				  });
+				  it('should block the system.all one', function(done){
+				    r.get('/filter/1').query({"system.all":"system.all"}).expect(403,"system.all",done);
+				  });
+				  it('should block the system.filter.all one', function(done){
+				    r.get('/filter/1').query({"system.filter.all":"system.filter.all"}).expect(403,"system.filter.all",done);
+				  });
+				  it('should block the show one', function(done){
+				    r.get('/filter/1').query({"system.filter.show":"system.filter.show"}).expect(403,"system.filter.show",done);
+				  });
+					describe('in order', function(){
+					  it('should use system.global with all queries set', function(done){
+							var q = {"system.all":"system.all","system.filter.all":"system.filter.all","system.filter.show":"system.filter.show",
+								"all":"all","filter.all":"filter.all","filter.show":"filter.show"
+						};
+					    r.get('/filter/1').query(q).expect(403,"system.all",done);
+					  });
+					  it('should use system.filter.all with last two', function(done){
+							var q = {"system.filter.all":"system.filter.all","filter.show":"filter.show"};
+					    r.get('/filter/1').query(q).expect(403,"system.filter.all",done);
 					  });
 					});
 				});

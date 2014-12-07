@@ -838,6 +838,24 @@ The order of execution is:
 2. `filter.all()`
 3. `filter.show()` (or any other specific one)
 
+#### Global Filters
+If you want to have filters that run on *all* resources, the above method will work - create a controller file for `resourceA` and another for `resourceB` and for `resourceC`, but that is pretty repetitive (and therefore not very DRY).
+
+A better solution is "global filters". Global filters look *exactly* like per-resource filters, and have the exact same file structure - `all`, `filter.all`, `filter.show`, etc. - but apply to every resource. To enable it, when initializing booster, just tell it where it is:
+
+    booster.init({filters:'/path/to/global/filters/file'});
+		
+It is that simple!
+
+The order of execution is:
+
+1. global `all()`
+2. global `filter.all()`
+3. global `filter.show()` (or any other specific one)
+4. controller-specific `all()`
+5. controller-specific `filter.all()`
+6. controller-specific `filter.show()` (or any other specific one)
+
 
 #### Post-Processors
 A common use case is one where you want to do some post-processing *before* sending the response back to the client, for example, if you `create` with `POST /users` but before sending back that successful `201`, you want to set up some activation stuff, perhaps using [activator](http://github.com/deitch/activator). Like with filters, you *could* override a controller method, like `create`, but then you lose all of the benefits.
