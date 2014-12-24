@@ -11,7 +11,7 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	  {id:"2",title:"foobar",content:"Even more"}
 	],
 	filter: [
-	  {id:"1",title:"filter",content:"I am filtered"}
+	  {id:"1",title:"filter",content:"I am filtered",post:"1"}
 	],
 	processor: [
 		{id:"1",title:"processor",content:"I am processed"}

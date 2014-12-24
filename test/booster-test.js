@@ -1110,7 +1110,7 @@ describe('booster',function () {
 			describe('with controllers',function () {
 				beforeEach(function (done) {
 					booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers',filters:__dirname+'/resources/filters'});
-					booster.resource('post');
+					booster.resource('post',{resource:{filter:["get"]}});
 					booster.resource('property');
 					booster.resource('filter');
 					booster.resource('processor');
@@ -1220,27 +1220,60 @@ describe('booster',function () {
 					});
 				});
 				describe('filters', function(){
-				  it('should allow through request without block', function(done){
-				    r.get('/filter/1').expect(200,db.data("filter",0),done);
-				  });
-				  it('should block the global one', function(done){
-				    r.get('/filter/1').query({all:"all"}).expect(403,"all",done);
-				  });
-				  it('should block the filter.global one', function(done){
-				    r.get('/filter/1').query({"filter.all":"filter.all"}).expect(403,"filter.all",done);
-				  });
-				  it('should block the show one', function(done){
-				    r.get('/filter/1').query({"filter.show":"filter.show"}).expect(403,"filter.show",done);
-				  });
-					describe('in order', function(){
-					  it('should use global with all three', function(done){
-							var q = {"all":"all","filter.all":"filter.all","filter.show":"filter.show"};
-					    r.get('/filter/1').query(q).expect(403,"all",done);
+					var path;
+					describe('via base path', function(){
+						beforeEach(function(){
+							path = '/filter/1';
+						});
+					  it('should allow through request without block', function(done){
+					    r.get(path).expect(200,db.data("filter",0),done);
 					  });
-					  it('should use filter.global with last two', function(done){
-							var q = {"filter.all":"filter.all","filter.show":"filter.show"};
-					    r.get('/filter/1').query(q).expect(403,"filter.all",done);
+					  it('should block the global one', function(done){
+					    r.get(path).query({all:"all"}).expect(403,"all",done);
 					  });
+					  it('should block the filter.global one', function(done){
+					    r.get(path).query({"filter.all":"filter.all"}).expect(403,"filter.all",done);
+					  });
+					  it('should block the show one', function(done){
+					    r.get(path).query({"filter.show":"filter.show"}).expect(403,"filter.show",done);
+					  });
+						describe('in order', function(){
+						  it('should use global with all three', function(done){
+								var q = {"all":"all","filter.all":"filter.all","filter.show":"filter.show"};
+						    r.get(path).query(q).expect(403,"all",done);
+						  });
+						  it('should use filter.global with last two', function(done){
+								var q = {"filter.all":"filter.all","filter.show":"filter.show"};
+						    r.get(path).query(q).expect(403,"filter.all",done);
+						  });
+						});
+					});
+					describe('via resource-as-a-property', function(){
+						beforeEach(function(){
+							path = '/post/1/filter';
+						});
+					  it('should allow through request without block', function(done){
+					    r.get(path).expect(200,db.data("filter",{post:"1"}),done);
+					  });
+					  it('should block the global one', function(done){
+					    r.get(path).query({all:"all"}).expect(403,"all",done);
+					  });
+					  it('should block the filter.global one', function(done){
+					    r.get(path).query({"filter.all":"filter.all"}).expect(403,"filter.all",done);
+					  });
+					  it('should block the index one', function(done){
+					    r.get(path).query({"filter.index":"filter.index"}).expect(403,"filter.index",done);
+					  });
+						describe('in order', function(){
+						  it('should use global with all three', function(done){
+								var q = {"all":"all","filter.all":"filter.all","filter.index":"filter.index"};
+						    r.get(path).query(q).expect(403,"all",done);
+						  });
+						  it('should use filter.global with last two', function(done){
+								var q = {"filter.all":"filter.all","filter.index":"filter.index"};
+						    r.get(path).query(q).expect(403,"filter.all",done);
+						  });
+						});
 					});
 				});
 				describe('global filters', function(){

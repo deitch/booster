@@ -25,6 +25,14 @@ module.exports = {
 			} else {
 				next();
 			}
+		},
+		index: function (req,res,next) {
+			var p = req.param("filter.index");
+			if (p) {
+				res.send(403,p);
+			} else {
+				next();
+			}
 		}
 	}
 };

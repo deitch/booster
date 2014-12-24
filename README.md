@@ -838,6 +838,32 @@ The order of execution is:
 2. `filter.all()`
 3. `filter.show()` (or any other specific one)
 
+**Note:** Filters will run, independent of any path you use to access the resource. So if you have the following defined for comment:
+
+    booster.resource('comment',{},{parent:'post'});
+		booster.resource('foo',{resource:{comment:['get']}});
+		
+Then you have three paths to list `comment`:
+
+* `/comment`
+* `/post/:post/comment`
+* `/foo/:foo/comment`
+
+In all three paths, any filters defined for `comment` will run, whether it is top-level `all`, `filter.all`, or path specific, such as `filter.index` or `filter.show`:
+
+    all: function(req,res,next) {
+			// do some filtering
+		},
+		filter: {
+			all: function(req,res,next) {
+				// do some other filtering
+			},
+			index: function(req,res,next) {
+				// filter on /comment or /post/:post/comment or /foo/:foo/comment
+			}
+		}
+
+
 #### Global Filters
 If you want to have filters that run on *all* resources, the above method will work - create a controller file for `resourceA` and another for `resourceB` and for `resourceC`, but that is pretty repetitive (and therefore not very DRY).
 
