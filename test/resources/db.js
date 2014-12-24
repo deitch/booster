@@ -13,6 +13,11 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	filter: [
 	  {id:"1",title:"filter",content:"I am filtered",post:"1"}
 	],
+	defaultfilter: [
+	  {id:"1",title:"filter one",content:"I am filter yes",filter:"yes"},
+	  {id:"2",title:"filter two",content:"I am filter no",filter:"no"},
+	  {id:"3",title:"filter three",content:"I am filter blank"}
+	],
 	processor: [
 		{id:"1",title:"processor",content:"I am processed"}
 	],

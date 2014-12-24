@@ -1330,6 +1330,7 @@ describe('booster',function () {
 					booster.resource('doubleunique'); // two independent unique field
 					booster.resource('combounique'); // two independent unique field
 					booster.resource('integers'); // fields with integers
+					booster.resource('defaultfilter'); // field with a default filter
 					booster.model('only'); // just a model, no route
 					r = request(app);
 					done();
@@ -1862,6 +1863,20 @@ describe('booster',function () {
 					});
 					it('should give correct results for greater than match',function (done) {
 						r.get('/integers').query({index:{gt:cutoff}}).expect(200,gt).end(done);
+					});
+				});
+				describe('with default filter', function(){
+					it('should successfully GET filtered records',function (done) {
+						r.get('/defaultfilter').expect(200,db.data("defaultfilter",{filter:"yes"})).end(done);
+					});
+					it('should successfully GET direct record ignoring filter',function (done) {
+						r.get('/defaultfilter/1').expect(200,db.data('defaultfilter',0),done);
+					});
+					it('should override default filter when providing a different one',function (done) {
+						r.get('/defaultfilter').query({filter:"no"}).expect(200,db.data("defaultfilter",{filter:"no"}),done);
+					});
+					it('should return all fields when providing an override filter',function (done) {
+						r.get('/defaultfilter').query({filter:"*"}).expect(200,db.data("defaultfilter"),done);
 					});
 				});
 			});

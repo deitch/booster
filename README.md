@@ -953,6 +953,11 @@ The `fields` is a list of all of the required fields and properties that are use
 * visible: this field is one of: public (visible to all), private (visible only for explicit private viewers), secret (never sent off the server)
 * validation: validations to which to subject this field
 * type: if this field should be a particular type. If it is, then when doing a `find()`, it will cast it to the appropriate type, if possible.
+* filter: if filtering should be done on this field in the case of `index()`. It should be an object with the following properties:
+   * default: what filter value should be applied to this field, if none is given
+	 * clear: what value if applied should indicate no filter
+
+
 
 Example: 
 ````JavaScript
@@ -960,7 +965,8 @@ fields = {
 	id: {required: true, createoptional: true, mutable: false, visible: "public"},
 	name: {required: true, mutable:false, visible: "public", validation:["notblank","alphanumeric"]},
 	email: {required: true, mutable:true, visible: "public", validation:"email"},
-	time: {required:true,mutable:true,type:"integer"}
+	time: {required:true,mutable:true,type:"integer"},
+	somefield: {filter:{default:"foo",clear:"*"}}
 }
 ````
 
@@ -968,6 +974,37 @@ The `required` boolean is ignored in two cases:
 
 1. PUT update: This makes sense. You might be updating a single field, why should it reject it just because you didn't update them all? If the `name` and `email` fields are required, but you just want to update `email`, you should be able to `PUT` the follwing `{email:"mynewmail@email.com"}` without triggering any "missing field required" validation errors.
 2. POST create and `createoptional === true`: If you flag a field as `required`, but also flag it as `createoptional`, then if you are creating it, validations will ignore the `required` flag. Well, that's why you set it up as `createoptional` in the first place, right?
+
+##### filters
+The filter option can be a little confusing, so here is a better explanation.
+
+Let's say you have defined a resource `play`. Normal behaviour would be:
+
+* `GET /play` - list all of the `play` items
+* `GET /play?somefield=foo` - list all of the `play` items where `somefield` equals "foo"
+
+However, you want it the other way around. You want `GET /play` to return only those items where `somefield` equals "foo", unless it explicitly gives something else.
+
+* `GET /play` - list all of the `play` items where `somefield` equals "foo"
+* `GET /play?somefield=bar` - list all of the `play` items where `somefield` equals "bar"
+
+Setting the model as above with `filter` set on `somefield` will provide exactly this outcome:
+
+    somefield: {filter:{default:"foo"}}
+
+But this creates a different problem. How do I tell the API, "send me all of the `play` items, whatever the value of `somefield` is"? Before adding the default filter, you would just do `GET /play`, but we added a filter to that!
+
+The solution is to set a `clear` on the filter. Whatever the `clear` is set to, that is what, if the parameter is set, will match all. So using the setup from above:
+
+    somefield: {filter:{default:"foo",clear:"*"}}
+
+We get the following:
+
+* `GET /play` - list all of the `play` items where `somefield` equals "foo"
+* `GET /play?somefield=bar` - list all of the `play` items where `somefield` equals "bar"
+* `GET /play?somefield=*` - list all of the `play` items
+
+Of course, you can set the value of `clear` to anything you want: "*" (as in the above example), "any", "all", or "funny". Whatever works for you!
 
 
 #### Validations
