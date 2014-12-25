@@ -18,6 +18,8 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	  {id:"2",title:"filter two",content:"I am filter no",filter:"no"},
 	  {id:"3",title:"filter three",content:"I am filter blank"}
 	],
+	withdefault: [
+	],
 	processor: [
 		{id:"1",title:"processor",content:"I am processed"}
 	],
@@ -156,7 +158,7 @@ module.exports = {
 		return(this);
 	},
 	create: function (name,model,callback) {
-		var idField = IDFIELDS[name] || "id", len = data[name].length, id = (parseInt(data[name][len-1][idField],10)+1).toString();
+		var idField = IDFIELDS[name] || "id", len = data[name].length, id = len > 0 ? (parseInt(data[name][len-1][idField],10)+1).toString() : "1";
 		model[idField] = id;
 		data[name].push(model);
 		callback(null,id);
