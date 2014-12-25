@@ -64,8 +64,8 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	  {id:"3",name:"jim"}
 	],
 	validated: [
-		{id:"1",email:"a@email.com",alpha:"abcd",abc:"abc",def:"def"},
-		{id:"2",email:"bad@mail",alpha:"abcd !",abc:"aa",def:"fff"}
+		{id:"1",email:"a@email.com",alpha:"abcd",abc:"abc",def:"def",list:"a"},
+		{id:"2",email:"bad@mail",alpha:"abcd !",abc:"aa",def:"fff",list:"q"}
 	],
 	avalidated: [
 		{id:"1",email:"a@email.com",alpha:"abcd",abc:"abc",def:"def"},

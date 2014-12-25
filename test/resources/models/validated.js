@@ -7,6 +7,7 @@ module.exports = {
 		abc: {validation: function (name,field,mode,attrs) {
 			return (attrs[field] === "abc");
 		}},
+		list: {validation:"list:a,b,c"},
 		def: {validation: function (name,field,mode,attrs) {
 			var ret = {};
 			if (mode === "get" || mode === "find") {

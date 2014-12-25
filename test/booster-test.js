@@ -1579,13 +1579,13 @@ describe('booster',function () {
 					    table = name = "validated";
 					  });
 						it('should fail to LIST with invalid record',function (done) {
-							r.get('/'+name).expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
+							r.get('/'+name).expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid",list:"list:a,b,c"}]).end(done);
 						});
 						it('should successfully GET valid record',function (done) {
 							r.get('/'+name+'/1').expect(200,db.data(table,0)).end(done);
 						});
 						it('should reject GET record with invalid fields',function (done) {
-							r.get('/'+name+'/2').expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid"}]).end(done);
+							r.get('/'+name+'/2').expect(400,[{email:"email",alpha:"alphanumeric",abc:"invalid",list:"list:a,b,c"}]).end(done);
 						});
 						it('should accept PUT with valid fields',function (done) {
 							async.series([
@@ -1654,6 +1654,24 @@ describe('booster',function () {
 								function (cb) {r.put('/'+name+'/1').send(newinfo).expect(200,cb);},
 								function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},newinfo,{def:"fed",id:oldinfo.id}),cb);}
 							],done);
+						});
+						it('should reject POST with invalid list field', function(done){
+							r.post('/'+name).send({list:"q"}).expect(400,{list:"list:a,b,c"},done);
+						});
+						it('should reject PUT with invalid list field', function(done){
+							r.put('/'+name+'/2').send({list:"q"}).expect(400,{list:"list:a,b,c"},done);
+						});
+						it('should reject PATCH with invalid list field', function(done){
+							r.patch('/'+name+'/2').send({list:"q"}).expect(400,{list:"list:a,b,c"},done);
+						});
+						it('should accept POST with valid list field', function(done){
+							r.post('/'+name).send({list:"a"}).expect(201,done);
+						});
+						it('should accept PUT with valid list field', function(done){
+							r.put('/'+name+'/2').send({list:"a"}).expect(200,done);
+						});
+						it('should accept PATCH with valid list field', function(done){
+							r.patch('/'+name+'/2').send({list:"a"}).expect(200,done);
 						});
 					});
 					describe('asynchronous', function(){

@@ -1039,6 +1039,7 @@ The following validations exist as of this writing:
 * `stringArray`; must be an array, every element of which must be a valid alphanumeric
 * `unique`: must be an array, no element of which may be repeated more than once
 * `minimum:<n>`: must be a string of minimum length `n`
+* `list:item,item,item,...,item`: must be one of the string items in the list
 
 If two or more validations are provided in an array, then **all** of the validations must pass (AND).
 
