@@ -1331,6 +1331,7 @@ describe('booster',function () {
 					booster.resource('combounique'); // two independent unique field
 					booster.resource('integers'); // fields with integers
 					booster.resource('defaultfilter'); // field with a default filter
+					booster.resource('withdefault'); // field with a default for blank
 					booster.model('only'); // just a model, no route
 					r = request(app);
 					done();
@@ -1877,6 +1878,46 @@ describe('booster',function () {
 					});
 					it('should return all fields when providing an override filter',function (done) {
 						r.get('/defaultfilter').query({filter:"*"}).expect(200,db.data("defaultfilter"),done);
+					});
+				});
+				describe('with default value', function(){
+					var newitem, result, id;
+					beforeEach(function(done){
+						newitem = {title:"New Title"};
+						async.waterfall([
+							function (cb) {r.post('/withdefault').type('json').send(newitem).expect(201,cb);},
+							function (res,cb) {id = res.text; r.get('/withdefault/'+id).expect(200,cb);},
+							function (res,cb) {result = res.body; cb();}
+						],done);
+					});
+					it('should set default field value', function(){
+						result.content.should.eql("default content");
+					});
+					it('should not override a passed field', function(){
+						result.title.should.eql(newitem.title);
+					});
+					it('should set default for a required field', function(){
+						result.other.should.eql("default other");
+					});
+					describe('complete replace', function(){
+						beforeEach(function(done){
+							newitem = {title:"New Title",other:"New Other",content:"New Content"};
+							async.waterfall([
+								function (cb) {r.put('/withdefault/'+id).type('json').send(newitem).expect(200,cb);},
+								function (res,cb) {r.put('/withdefault/'+id).type('json').send({title:"New Title"}).expect(200,cb);},
+								function (res,cb) {r.get('/withdefault/'+id).expect(200,cb);},
+								function (res,cb) {result = res.body; cb();}
+							],done);
+						});
+						it('should set default field value', function(){
+							result.content.should.eql("default content");
+						});
+						it('should not override a passed field', function(){
+							result.title.should.eql(newitem.title);
+						});
+						it('should set default for a required field', function(){
+							result.other.should.eql("default other");
+						});
 					});
 				});
 			});

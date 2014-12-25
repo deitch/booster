@@ -953,6 +953,7 @@ The `fields` is a list of all of the required fields and properties that are use
 * visible: this field is one of: public (visible to all), private (visible only for explicit private viewers), secret (never sent off the server)
 * validation: validations to which to subject this field
 * type: if this field should be a particular type. If it is, then when doing a `find()`, it will cast it to the appropriate type, if possible.
+* default: if this field is not specified, a default value.
 * filter: if filtering should be done on this field in the case of `index()`. It should be an object with the following properties:
    * default: what filter value should be applied to this field, if none is given
 	 * clear: what value if applied should indicate no filter
@@ -974,6 +975,13 @@ The `required` boolean is ignored in two cases:
 
 1. PUT update: This makes sense. You might be updating a single field, why should it reject it just because you didn't update them all? If the `name` and `email` fields are required, but you just want to update `email`, you should be able to `PUT` the follwing `{email:"mynewmail@email.com"}` without triggering any "missing field required" validation errors.
 2. POST create and `createoptional === true`: If you flag a field as `required`, but also flag it as `createoptional`, then if you are creating it, validations will ignore the `required` flag. Well, that's why you set it up as `createoptional` in the first place, right?
+
+##### default values
+If you specify a `default` value for a field, then if the field is unspecified, it will be set to this value. Some important points:
+
+* This only applies to `PUT` and `POST`. `PATCH` leaves the previous value.
+* This will only apply if there is no value given at all. If it is an empty string or 0 or some other "falsy" value, it will not be applied.
+* If the field is `required`, and there is a `default` value is specified, then if the `PUT` or `POST` value of the field is blank, the default value will be applied and the `required` condition will be satsified.
 
 ##### filters
 The filter option can be a little confusing, so here is a better explanation.
