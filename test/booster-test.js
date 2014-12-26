@@ -1335,7 +1335,8 @@ describe('booster',function () {
 					booster.resource('cascadeone'); // parent of cascade
 					booster.resource('cascadetwo'); // child of cascade
 					booster.resource('cascadethree'); // grandchild of cascade
-					booster.resource('cascadefour'); // grandchild of cascade
+					booster.resource('cascadefour'); // other child of cascade
+					booster.resource('cascadefilter'); // child of cascade with default filter
 					booster.model('only'); // just a model, no route
 					r = request(app);
 					done();
@@ -2189,6 +2190,9 @@ describe('booster',function () {
 							it('should not cascade to unmatching other child', function(done){
 								r.get('/cascadefour/2').expect(200,db.puredata("cascadefour",1),done);
 							});
+							it('should ignore filter on child', function(done){
+								r.get('/cascadefilter/1').expect(200,_.extend({},db.puredata("cascadefilter",0),{multiplechildren:c1.multiplechildren}),done);
+							});
 						});
 						describe('put', function(){
 							beforeEach(function(done){
@@ -2209,6 +2213,9 @@ describe('booster',function () {
 							});
 							it('should not cascade to unmatching other child', function(done){
 								r.get('/cascadefour/2').expect(200,db.puredata("cascadefour",1),done);
+							});
+							it('should ignore filter on child', function(done){
+								r.get('/cascadefilter/1').expect(200,_.extend({},db.puredata("cascadefilter",0),{multiplechildren:c1.multiplechildren}),done);
 							});
 						});
 					});

@@ -109,6 +109,9 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	cascadefour: [
 		{id:"1",singlevalue:"singlefour",arrayvalue:"arrayfour",anyvalue:"anyfour",multiplechildren:"multiplefour",cascadeone:"1"},
 		{id:"2",singlevalue:"singlefourtwo",arrayvalue:"arrayfourtwo",anyvalue:"anyfourtwo",multiplechildren:"multiplefourtwo",cascadeone:"200"}
+	],
+	cascadefilter: [
+		{id:"1",singlevalue:"singlefilter",arrayvalue:"arrayfilter",anyvalue:"anyfilter",multiplechildren:"multiplefilter",cascadeone:"1"}
 	]
 }, IDFIELDS = {
 	different: "key"
