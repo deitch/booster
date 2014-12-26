@@ -956,7 +956,8 @@ The `fields` is a list of all of the required fields and properties that are use
 * default: if this field is not specified, a default value.
 * filter: if filtering should be done on this field in the case of `index()`. It should be an object with the following properties:
    * default: what filter value should be applied to this field, if none is given
-	 * clear: what value if applied should indicate no filter
+   * clear: what value if applied should indicate no filter
+* cascade: if this field is changed, cascade the change down to dependent model items. See details below.
 
 
 
@@ -1013,6 +1014,67 @@ We get the following:
 * `GET /play?somefield=*` - list all of the `play` items
 
 Of course, you can set the value of `clear` to anything you want: "*" (as in the above example), "any", "all", or "funny". Whatever works for you!
+
+##### cascade
+
+What if you have an item that has dependent items. When you make a change to a field here, you want to cascade similar changes to all of the "child" items? Here is an example. 
+
+I have two models, `post` and `comment`. They look like this:
+
+    post: {
+			id: {required:true,createoptional:true},
+			content: {required:true},
+			status: {required:true,default:"draft",validation:"list:draft,published"}
+		}
+		
+		comment: {
+			id: {required:true,createoptional:true},
+			post: {required:true},
+			content: {required:true},
+			status: {required:true,default:"draft",validation:"list:draft,published"}
+		}
+
+What you want is when you publish a `post` by changing its status from "draft" to "published", that all dependent `comment` elements are changed to `published` as well. Now, you might *not* want that, in which case, well, do nothing! But if you do...
+
+Of course, you can do that by putting a `post` processor in the controller. For example, the controller for `post` might be:
+
+    post: {
+			patch: function(req,res,next,status,body) {
+				if (req.body && req.body.status === "published") {
+					req.booster.models.content.find({post:req.param("post")},function(err,data) {
+						if (data && data.length > 0) {
+							req.booster.models.content.patch(_.pluck(data,"id"),{status:"published"},function(err,data){
+								next();
+							});
+						}
+					});
+				}
+			}
+		}
+
+That would work, but requires extra work and more error-handling than I have done here. If you want 3-4 levels of cascade - publishing a `category` leads to publishing child `post` leads to publishing child `comment` leads to (you get the idea) - it gets terribly messy and long. It also means that if you make the changes somewhere *inside* your program - i.e. not through the controller, say, by modifying the model from elsewhere, you won't catch it. What a mess!
+
+Instead, let's go the simple route! `booster` allows you to say, "if I change this field to a certain value, then all children should get the same change."
+
+We can rewrite the model for `post` as follows:
+
+    post: {
+			id: {required:true,createoptional:true},
+			content: {required:true},
+			status: {required:true,default:"draft",validation:"list:draft,published", 
+			    cascade: {value:"published",children:"comment"}
+				}
+		}
+
+Note what we added: `cascade: {value:"published",children:"comment"}`.
+
+This means: if we change this field's value to "published", then all instances of `comment` which have the value of `post` (since our type is `post`) equal to our `id` should have their `status` (since our field is `status`) changed to "published" as well.
+
+Here are the parts of cascade you can set:
+
+* `value`: setting which value should trigger a cascade. This can be a string or an array of strings. If not set, then **all** value changes trigger a cascade.
+* `children`: which children who have a field named the same as our current model and a value the same as this item's `id` should be cascaded to. This can be a string or an array of strings. If `children` is not set, nothing is ever cascaded (since we have nothing to cascade it to!).
+
 
 
 #### Validations

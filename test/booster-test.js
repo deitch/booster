@@ -1332,6 +1332,10 @@ describe('booster',function () {
 					booster.resource('integers'); // fields with integers
 					booster.resource('defaultfilter'); // field with a default filter
 					booster.resource('withdefault'); // field with a default for blank
+					booster.resource('cascadeone'); // parent of cascade
+					booster.resource('cascadetwo'); // child of cascade
+					booster.resource('cascadethree'); // grandchild of cascade
+					booster.resource('cascadefour'); // grandchild of cascade
 					booster.model('only'); // just a model, no route
 					r = request(app);
 					done();
@@ -1935,6 +1939,341 @@ describe('booster',function () {
 						});
 						it('should set default for a required field', function(){
 							result.other.should.eql("default other");
+						});
+					});
+				});
+				describe('cascade changes', function(){
+					var c1;
+					describe('single value', function(){
+						describe('match', function(){
+							describe('patch', function(){
+								beforeEach(function(done){
+									c1 = {singlevalue:"published"};
+									r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+								});
+								it('should cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{singlevalue:c1.singlevalue}),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,_.extend({},db.puredata("cascadethree",0),{singlevalue:c1.singlevalue}),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+							describe('put', function(){
+								beforeEach(function(done){
+									c1 = {singlevalue:"published"};
+									r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+								});
+								it('should cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{singlevalue:c1.singlevalue}),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,_.extend({},db.puredata("cascadethree",0),{singlevalue:c1.singlevalue}),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+						});
+						describe('no match', function(){
+							describe('patch', function(){
+								beforeEach(function(done){
+									c1 = {singlevalue:"foo"};
+									r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+								});
+								it('should not cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should not cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,db.puredata("cascadethree",0),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+							describe('put', function(){
+								beforeEach(function(done){
+									c1 = {singlevalue:"foo"};
+									r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+								});
+								it('should not cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should not cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,db.puredata("cascadethree",0),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+						});
+					});
+					describe('array value', function(){
+						describe('match', function(){
+							describe('patch', function(){
+								beforeEach(function(done){
+									c1 = {arrayvalue:"published"};
+									r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+								});
+								it('should cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{arrayvalue:c1.arrayvalue}),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,_.extend({},db.puredata("cascadethree",0),{arrayvalue:c1.arrayvalue}),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+							describe('put', function(){
+								beforeEach(function(done){
+									c1 = {arrayvalue:"published"};
+									r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+								});
+								it('should cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{arrayvalue:c1.arrayvalue}),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,_.extend({},db.puredata("cascadethree",0),{arrayvalue:c1.arrayvalue}),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+						});
+						describe('no match', function(){
+							describe('patch', function(){
+								beforeEach(function(done){
+									c1 = {arrayvalue:"foo"};
+									r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+								});
+								it('should not cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should not cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,db.puredata("cascadethree",0),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+							describe('put', function(){
+								beforeEach(function(done){
+									c1 = {arrayvalue:"foo"};
+									r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+								});
+								it('should set original item to correct values', function(done){
+									r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+								});
+								it('should not cascade to matching child', function(done){
+									r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+								});
+								it('should not cascade to unmatching child', function(done){
+									r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+								});
+								it('should not cascade to matching grandchild', function(done){
+									r.get('/cascadethree/1').expect(200,db.puredata("cascadethree",0),done);
+								});
+								it('should not cascade to unmatching grandchild', function(done){
+									r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+								});
+							});
+						});
+					});
+					describe('any value', function(){
+						describe('patch', function(){
+							beforeEach(function(done){
+								c1 = {anyvalue:"foobar"};
+								r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+							});
+							it('should cascade to matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{anyvalue:c1.anyvalue}),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+							it('should cascade to matching grandchild', function(done){
+								r.get('/cascadethree/1').expect(200,_.extend({},db.puredata("cascadethree",0),{anyvalue:c1.anyvalue}),done);
+							});
+							it('should not cascade to unmatching grandchild', function(done){
+								r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+							});
+						});
+						describe('put', function(){
+							beforeEach(function(done){
+								c1 = {anyvalue:"foobar"};
+								r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+							});
+							it('should cascade to matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{anyvalue:c1.anyvalue}),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+							it('should cascade to matching grandchild', function(done){
+								r.get('/cascadethree/1').expect(200,_.extend({},db.puredata("cascadethree",0),{anyvalue:c1.anyvalue}),done);
+							});
+							it('should not cascade to unmatching grandchild', function(done){
+								r.get('/cascadethree/2').expect(200,db.puredata("cascadethree",1),done);
+							});
+						});
+					});
+					describe('multiple children', function(){
+						describe('patch', function(){
+							beforeEach(function(done){
+								c1 = {multiplechildren:"published"};
+								r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+							});
+							it('should cascade to one matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{multiplechildren:c1.multiplechildren}),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+							it('should cascade to other matching child', function(done){
+								r.get('/cascadefour/1').expect(200,_.extend({},db.puredata("cascadefour",0),{multiplechildren:c1.multiplechildren}),done);
+							});
+							it('should not cascade to unmatching other child', function(done){
+								r.get('/cascadefour/2').expect(200,db.puredata("cascadefour",1),done);
+							});
+						});
+						describe('put', function(){
+							beforeEach(function(done){
+								c1 = {multiplechildren:"published"};
+								r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+							});
+							it('should cascade to one matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,_.extend({},db.puredata("cascadetwo",0),{multiplechildren:c1.multiplechildren}),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+							it('should cascade to other matching child', function(done){
+								r.get('/cascadefour/1').expect(200,_.extend({},db.puredata("cascadefour",0),{multiplechildren:c1.multiplechildren}),done);
+							});
+							it('should not cascade to unmatching other child', function(done){
+								r.get('/cascadefour/2').expect(200,db.puredata("cascadefour",1),done);
+							});
+						});
+					});
+					describe('no children', function(){
+						describe('patch', function(){
+							beforeEach(function(done){
+								c1 = {nochildren:"published"};
+								r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+							});
+							it('should not cascade to matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+						});
+						describe('put', function(){
+							beforeEach(function(done){
+								c1 = {nochildren:"published"};
+								r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+							});
+							it('should not cascade to matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+						});
+					});
+					describe('unmatched children', function(){
+						describe('patch', function(){
+							beforeEach(function(done){
+								c1 = {errorchildren:"published"};
+								r.patch('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend({},db.puredata("cascadeone",0),c1),done);
+							});
+							it('should not cascade to matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
+						});
+						describe('put', function(){
+							beforeEach(function(done){
+								c1 = {errorchildren:"published"};
+								r.put('/cascadeone/1').type('json').send(c1).expect(200,done);
+							});
+							it('should set original item to correct values', function(done){
+								r.get('/cascadeone/1').expect(200,_.extend(c1,{id:"1"}),done);
+							});
+							it('should not cascade to matching child', function(done){
+								r.get('/cascadetwo/1').expect(200,db.puredata("cascadetwo",0),done);
+							});
+							it('should not cascade to unmatching child', function(done){
+								r.get('/cascadetwo/2').expect(200,db.puredata("cascadetwo",1),done);
+							});
 						});
 					});
 				});

@@ -94,6 +94,21 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"2",name:"two",index:12},
 		{id:"3",name:"three",index:18},
 		{id:"4",name:"four",index:20},
+	],
+	cascadeone: [
+		{id:"1",singlevalue:"singleone",arrayvalue:"arrayone",anyvalue:"anyone",multiplechildren:"lots of children",nochildren:"none",errorchildren:"oops"}
+	],
+	cascadetwo: [
+		{id:"1",singlevalue:"singletwo",arrayvalue:"arraytwo",anyvalue:"anytwo",multiplechildren:"multipletwo",cascadeone:"1"},
+		{id:"2",singlevalue:"singletwotwo",arrayvalue:"arraytwotwo",anyvalue:"anytwotwo",multiplechildren:"multipletwotwo",cascadeone:"200"}
+	],
+	cascadethree: [
+		{id:"1",singlevalue:"singlethree",arrayvalue:"arraythree",anyvalue:"anythree",multiplechildren:"multiplethree",cascadetwo:"1"},
+		{id:"2",singlevalue:"singlethreetwo",arrayvalue:"arraythreetwo",anyvalue:"anythreetwo",multiplechildren:"multiplethreetwo",cascadetwo:"200"}
+	],
+	cascadefour: [
+		{id:"1",singlevalue:"singlefour",arrayvalue:"arrayfour",anyvalue:"anyfour",multiplechildren:"multiplefour",cascadeone:"1"},
+		{id:"2",singlevalue:"singlefourtwo",arrayvalue:"arrayfourtwo",anyvalue:"anyfourtwo",multiplechildren:"multiplefourtwo",cascadeone:"200"}
 	]
 }, IDFIELDS = {
 	different: "key"
@@ -188,6 +203,18 @@ module.exports = {
 			ret = sjs.matchArray(data[name],idx);
 		}
 		return(ret);
+	},
+	puredata: function (name,idx) {
+		var ret, data = DATA;
+		if (idx === null || idx === undefined) {
+			ret = data[name];
+		} else if (typeof(idx) === "number") {
+			ret = data[name][idx];
+		} else if (typeof(idx) === "string"){
+			ret = data[name][findById(name,idx)];
+		} else {
+			ret = sjs.matchArray(data[name],idx);
+		}
+		return(ret);
 	}
-	
 };
