@@ -21,6 +21,33 @@ Done! You now have a REST service listening on the five standard REST paths for 
 
 Want customized controllers? Disable some paths? Nest resources? Model validations? Uniqueness? Read on!
 
+## Features
+Here are just *some* of the key features:
+
+* Standard REST verbs/actions and paths: `GET` (index), `GET` (show), `POST` (create), `PUT` (update), `PATCH` (patch), `DELETE` (destroy)
+* Restrict verbs by resource
+* Multiple paths to same resource
+* Root path to resource
+* Nested resources
+* Override controller behaviour by action
+* Custom names for a resource by path
+* `GET` (index) can send list or object
+* Custom base paths (like `/api`)
+* Paths to resource properties
+* Pre-processing filters across all actions or by action
+* Post-processing filters across all actions or by action
+* Automatic list/update of related resources
+* Built-in validations
+* Custom validation functions
+* Default field values
+* Default search filters
+* Check for unique items and conflicts
+* Restrict mutability by field
+* Cascading field changes to children
+* Differing visiblity by field: public, private, secret and custom
+* Custom presave processors
+* Custom model functions
+
 ##Installation
 
 ````
@@ -1103,57 +1130,7 @@ The following validations exist as of this writing:
 * `minimum:<n>`: must be a string of minimum length `n`
 * `list:item,item,item,...,item`: must be one of the string items in the list
 
-If two or more validations are provided in an array, then **all** of the validations must pass (AND).
-
-###### unique
-If you want to check, before saving an object, that certain fields are unique - e.g. you don't want to create two objects with the same email - you can tell booster to check for you. It uses the `db.find()` function, creating a `search` to check.
-
-The `unique` field is an array, the elements of which are either strings or arrays of strings. Let's look at a few examples:
-
-###### One field
-If you want just one field to be unique, like `email`, then just put it there:
-
-````JavaScript
-unique: ["email"]
-````
-
-If you create a model of type `user` `{name:"john",email:"john@gmail.com"}`, and have the above unique parameter, then before saving, booster will do the following:
-
-````JavaScript
-db.find('user',{email:"john@gmail.com"},callback);
-````
-
-Only if it finds no matches at all, will it proceed to save/update/create the model.
-
-###### Two fields, both of which must be unique
-If you want to make sure that two fields are not repeated, like `email` and `user`, then put them both in:
-
-````JavaScript
-unique: ["email","name"]
-````
-
-If you create a model of type `user` `{name:"john",email:"john@gmail.com"}`, and have the above unique parameter, then before saving, booster will do the following:
-
-````JavaScript
-db.find('user',{email:"john@gmail.com","name":"john","_join":"OR"},callback);
-````
-
-Only if it finds no matches at all, will it proceed to save/update/create the model.
-
-###### Two fields, which must be unique in combination
-If you want to make sure that two fields are unique in combination, for example if `firstName` can be repeated, and `lastName` can be repeated, but the combination cannot, then put them in their own array.
-
-````JavaScript
-unique: [["email","name"]]
-````
-
-If you create a model of type `user` `{firstName:"John",lastName:"Smith"}`, and have the above unique parameter, then before saving, booster will do the following:
-
-````JavaScript
-db.find('user',{email:"john@gmail.com","name":"john","_join":"AND"},callback);
-````
-
-Only if it finds no matches at all, will it proceed to save/update/create the model.
+If two or more validations are provided in an array, then **all** of the validations must pass (logical AND).
 
 ##### Validation Functions
 Sometimes, the pre-defined validations just are not enough. You want to define your own validation functions. No problem! Instead of a string or array of strings, simply define a function, like so:
@@ -1321,6 +1298,86 @@ req.booster.models.user.get("10",function(err,res){
 });
 ````
 
+#### Model object uniqueness
+So you have your models, and you have defined all the validations necessary.
+
+But now you have a new problem: 2 users are not allowed the same username. Or perhaps the same address. Or, for that matter, anything at all that defines a **unique** object. 
+
+One way to do it is to define a filter in which you manually search and then save the item:
+
+````JavaScript
+filter: {
+	create: function(req,res,next) {
+		req.booster.models.user.find({name:"john"},function(err,data){
+			if (data && data.length > 0) {
+				res.send(409,"already have a user named john")
+			} else {
+				next();
+			}
+		});
+	}
+}
+````
+
+Of course, you would need to do the same for `update` and `patch`. `booster` (as you already guessed!) makes this easier for you. You can tell the model, "this field, or these fields, or this combination of fields, must be unique, and if not, refuse to create, update or patch an object." It uses the `db.find()` function, creating a `search` to check.
+
+This section tells you how to do it by using the `unique` property of the model, for example:
+
+````JavaScript
+	fields: {
+		id: {required:true,createoptional:true},
+		firstname: {},
+		lastname: {}
+	}, unique: ["firstname","lastname"]
+````
+
+The `unique` field is an array, the elements of which are either strings or arrays of strings. Let's look at a few examples:
+
+
+###### One field
+If you want just one field to be unique, like `email`, then just put it there:
+
+````JavaScript
+unique: ["email"]
+````
+
+If you create a model of type `user` `{name:"john",email:"john@gmail.com"}`, and have the above unique parameter, then before saving, booster will do the following:
+
+````JavaScript
+db.find('user',{email:"john@gmail.com"},callback);
+````
+
+Only if it finds no matches at all, will it proceed to save/update/create the model.
+
+###### Two fields, both of which must be unique
+If you want to make sure that two fields are not repeated, like `email` and `user`, then put them both in:
+
+````JavaScript
+unique: ["email","name"]
+````
+
+If you create a model of type `user` `{name:"john",email:"john@gmail.com"}`, and have the above unique parameter, then before saving, booster will do the following:
+
+````JavaScript
+db.find('user',{email:"john@gmail.com","name":"john","_join":"OR"},callback);
+````
+
+Only if it finds no matches at all, will it proceed to save/update/create the model.
+
+###### Two fields, which must be unique in combination
+If you want to make sure that two fields are unique in combination, for example if `firstName` can be repeated, and `lastName` can be repeated, but the combination cannot, then put them in their own array.
+
+````JavaScript
+unique: [["email","name"]]
+````
+
+If you create a model of type `user` `{firstName:"John",lastName:"Smith"}`, and have the above unique parameter, then before saving, booster will do the following:
+
+````JavaScript
+db.find('user',{email:"john@gmail.com","name":"john","_join":"AND"},callback);
+````
+
+Only if it finds no matches at all, will it proceed to save/update/create the model.
 
 
 #### presave
