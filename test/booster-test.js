@@ -1794,8 +1794,14 @@ describe('booster',function () {
 						it('should accept matched PUT', function(done){
 							r.put('/validatetoparent/2').send({status:"published",validateparent:"2"}).expect(200,done);
 						});
+						it('should accept PUT that removes parent', function(done){
+							r.put('/validatetoparent/1').send({status:"published"}).expect(200,done);
+						});
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({status:"published"}).expect(200,done);
+						});
+						it('should accept create without required parent', function(done){
+							r.post('/validatetoparent').send({status:"published"}).expect(201,done);
 						});
 					});
 					describe('with single check restriction', function(){
