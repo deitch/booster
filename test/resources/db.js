@@ -114,12 +114,12 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"1",singlevalue:"singlefilter",arrayvalue:"arrayfilter",anyvalue:"anyfilter",multiplechildren:"multiplefilter",cascadeone:"1"}
 	],
 	validatetoparent: [
-		{id:"1",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"1"},
-		{id:"2",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"2"}
+		{id:"1",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"10"},
+		{id:"2",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"20"}
 	],
 	validateparent: [
-		{id:"1",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft"},
-		{id:"2",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published"}
+		{id:"10",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft"},
+		{id:"20",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published"}
 	]
 }, IDFIELDS = {
 	different: "key"

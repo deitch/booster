@@ -1777,22 +1777,22 @@ describe('booster',function () {
 					});
 				});
 				describe('with parent validations', function(){
-					// remember, /validateparent/1 has everything "draft", /validateparent/2 has everything "published"
+					// remember, /validateparent/10 has everything "draft", /validateparent/20 has everything "published"
 					describe('with no check restrictions', function(){
 						it('should reject unmatched create', function(done){
-							r.post('/validatetoparent').send({status:"published",validateparent:"1"}).expect(400,{status:"invalidparent"},done);
+							r.post('/validatetoparent').send({status:"published",validateparent:"10"}).expect(400,{status:"invalidparent"},done);
 						});
 						it('should reject unmatched PUT', function(done){
-							r.put('/validatetoparent/1').send({status:"published",validateparent:"1"}).expect(400,{status:"invalidparent"},done);
+							r.put('/validatetoparent/1').send({status:"published",validateparent:"10"}).expect(400,{status:"invalidparent"},done);
 						});
 						it('should reject unmatched PATCH', function(done){
 							r.patch('/validatetoparent/1').send({status:"published"}).expect(400,{status:"invalidparent"},done);
 						});
 						it('should accept matched create', function(done){
-							r.post('/validatetoparent').send({status:"published",validateparent:"2"}).expect(201,done);
+							r.post('/validatetoparent').send({status:"published",validateparent:"20"}).expect(201,done);
 						});
 						it('should accept matched PUT', function(done){
-							r.put('/validatetoparent/2').send({status:"published",validateparent:"2"}).expect(200,done);
+							r.put('/validatetoparent/2').send({status:"published",validateparent:"20"}).expect(200,done);
 						});
 						it('should accept PUT that removes parent', function(done){
 							r.put('/validatetoparent/1').send({status:"published"}).expect(200,done);
@@ -1806,19 +1806,19 @@ describe('booster',function () {
 					});
 					describe('with single check restriction', function(){
 						it('should reject unmatched create', function(done){
-							r.post('/validatetoparent').send({statuscheck:"published",validateparent:"1"}).expect(400,{statuscheck:"invalidparent"},done);
+							r.post('/validatetoparent').send({statuscheck:"published",validateparent:"10"}).expect(400,{statuscheck:"invalidparent"},done);
 						});
 						it('should reject unmatched PUT', function(done){
-							r.put('/validatetoparent/1').send({statuscheck:"published",validateparent:"1"}).expect(400,{statuscheck:"invalidparent"},done);
+							r.put('/validatetoparent/1').send({statuscheck:"published",validateparent:"10"}).expect(400,{statuscheck:"invalidparent"},done);
 						});
 						it('should reject unmatched PATCH', function(done){
 							r.patch('/validatetoparent/1').send({statuscheck:"published"}).expect(400,{statuscheck:"invalidparent"},done);
 						});
 						it('should accept matched create', function(done){
-							r.post('/validatetoparent').send({statuscheck:"published",validateparent:"2"}).expect(201,done);
+							r.post('/validatetoparent').send({statuscheck:"published",validateparent:"20"}).expect(201,done);
 						});
 						it('should accept matched PUT', function(done){
-							r.put('/validatetoparent/2').send({statuscheck:"published",validateparent:"2"}).expect(200,done);
+							r.put('/validatetoparent/2').send({statuscheck:"published",validateparent:"20"}).expect(200,done);
 						});
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({statuscheck:"published"}).expect(200,done);
@@ -1826,19 +1826,19 @@ describe('booster',function () {
 					});
 					describe('with comma-separated restriction', function(){
 						it('should reject unmatched create', function(done){
-							r.post('/validatetoparent').send({statuscheckcomma:"published",validateparent:"1"}).expect(400,{statuscheckcomma:"invalidparent"},done);
+							r.post('/validatetoparent').send({statuscheckcomma:"published",validateparent:"10"}).expect(400,{statuscheckcomma:"invalidparent"},done);
 						});
 						it('should reject unmatched PUT', function(done){
-							r.put('/validatetoparent/1').send({statuscheckcomma:"published",validateparent:"1"}).expect(400,{statuscheckcomma:"invalidparent"},done);
+							r.put('/validatetoparent/1').send({statuscheckcomma:"published",validateparent:"10"}).expect(400,{statuscheckcomma:"invalidparent"},done);
 						});
 						it('should reject unmatched PATCH', function(done){
 							r.patch('/validatetoparent/1').send({statuscheckcomma:"published"}).expect(400,{statuscheckcomma:"invalidparent"},done);
 						});
 						it('should accept matched create', function(done){
-							r.post('/validatetoparent').send({statuscheckcomma:"published",validateparent:"2"}).expect(201,done);
+							r.post('/validatetoparent').send({statuscheckcomma:"published",validateparent:"20"}).expect(201,done);
 						});
 						it('should accept matched PUT', function(done){
-							r.put('/validatetoparent/2').send({statuscheckcomma:"published",validateparent:"2"}).expect(200,done);
+							r.put('/validatetoparent/2').send({statuscheckcomma:"published",validateparent:"20"}).expect(200,done);
 						});
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({statuscheckcomma:"published"}).expect(200,done);
@@ -1846,19 +1846,19 @@ describe('booster',function () {
 					});
 					describe('with array restriction', function(){
 						it('should reject unmatched create', function(done){
-							r.post('/validatetoparent').send({statuschecklist:"published",validateparent:"1"}).expect(400,{statuschecklist:"invalidparent"},done);
+							r.post('/validatetoparent').send({statuschecklist:"published",validateparent:"10"}).expect(400,{statuschecklist:"invalidparent"},done);
 						});
 						it('should reject unmatched PUT', function(done){
-							r.put('/validatetoparent/1').send({statuschecklist:"published",validateparent:"1"}).expect(400,{statuschecklist:"invalidparent"},done);
+							r.put('/validatetoparent/1').send({statuschecklist:"published",validateparent:"10"}).expect(400,{statuschecklist:"invalidparent"},done);
 						});
 						it('should reject unmatched PATCH', function(done){
 							r.patch('/validatetoparent/1').send({statuschecklist:"published"}).expect(400,{statuschecklist:"invalidparent"},done);
 						});
 						it('should accept matched create', function(done){
-							r.post('/validatetoparent').send({statuschecklist:"published",validateparent:"2"}).expect(201,done);
+							r.post('/validatetoparent').send({statuschecklist:"published",validateparent:"20"}).expect(201,done);
 						});
 						it('should accept matched PUT', function(done){
-							r.put('/validatetoparent/2').send({statuschecklist:"published",validateparent:"2"}).expect(200,done);
+							r.put('/validatetoparent/2').send({statuschecklist:"published",validateparent:"20"}).expect(200,done);
 						});
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({statuschecklist:"published"}).expect(200,done);
