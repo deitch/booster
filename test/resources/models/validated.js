@@ -4,6 +4,7 @@ module.exports = {
 		id: {required:true,createoptional:true,mutable:false},
 		email: {validation:["email"]},
 		alpha: {validation: "alphanumeric"},
+		alphaobj: {validation:{valid:"alphanumeric"}},
 		abc: {validation: function (name,field,mode,attrs) {
 			return (attrs[field] === "abc");
 		}},

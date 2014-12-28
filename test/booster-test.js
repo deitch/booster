@@ -1610,6 +1610,26 @@ describe('booster',function () {
 								function (cb) {r.get('/'+name+'/1').expect(200,db.data(table,0),cb);}
 							],done);
 						});
+						it('should accept PUT with valid object field', function(done){
+							var newdata = {alphaobj:"bigAl"};
+							async.series([
+								function (cb) {r.put('/'+name+'/1').send(newdata).expect(200,cb);},
+								function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),newdata),cb);}
+							],done);
+						});
+						it('should accept PATCH with valid object field', function(done){
+							var newdata = {alphaobj:"bigAl"};
+							async.series([
+								function (cb) {r.patch('/'+name+'/1').send(newdata).expect(200,cb);},
+								function (cb) {r.get('/'+name+'/1').expect(200,_.extend({},db.data(table,0),newdata),cb);}
+							],done);
+						});
+						it('should reject PUT with invalid object field', function(done){
+							r.put('/'+name+'/1').send({alphaobj:"not ! alpha"}).expect(400,{alphaobj:"alphanumeric"},done);
+						});
+						it('should reject PATCH with invalid object field', function(done){
+							r.patch('/'+name+'/1').send({alphaobj:"not ! alpha"}).expect(400,{alphaobj:"alphanumeric"},done);
+						});
 						it('should give correct response reject for PUT with validation function and boolean response',function (done) {
 							async.series([
 								function (cb) {r.put('/'+name+'/1').send({abc:"cba"}).expect(400,{abc:"invalid"},cb);},
