@@ -39,11 +39,13 @@ Here are just *some* of the key features:
 * Automatic list/update of related resources
 * Built-in validations
 * Custom validation functions
+* Validation based on values in other resources (e.g. child cannot be set to "valid" if "parent" is not "valid")
 * Default field values
 * Default search filters
 * Check for unique items and conflicts
 * Restrict mutability by field
 * Cascading field changes to children
+* Cascading delete: automatically cascade deletes to children, prevent if children exist, or prevent unless force
 * Differing visiblity by field: public, private, secret and custom
 * Custom presave processors
 * Custom model functions
@@ -963,6 +965,7 @@ So what is in a model? Actually, a model is an automatically generated JavaScrip
 * id: what the ID field is. We need this so that we can use "unique" comparisons and other services. Optional. Defaults to "id".
 * presave: a function to be executed immediately prior to saving a model via update or create. Optional.
 * extend: an object, with functions that will extend the model. Optional. See below.
+* delete: rules for creating, preventing or enforcing cascading deletes. Optional. See below.
 
 An actual model instance is just a plain old javascript object (POJSO). The data returned from the database to a controller should be a POJSO, as should the data sent back.
 
@@ -1533,6 +1536,63 @@ module.exports = {
 }
 ````
 
+#### Cascading delete
+OK, so you have your great setup, with some resources dependent on other resources. Using our great example of a blogging system, you have your `post` and your `comment`s. Unfortunately, your latest little blog post offended a few too many people, and you decide to delete it.
+
+**Hold on!** 
+
+That blog post has 10 comments on it! When you said, "delete `post` 25", did you mean:
+
+1. delete it and leave the comments around as orphans?
+2. delete it and the dependent comments too?
+3. I didn't know there were dependent comments that would become orphans! Don't let delete it unless I explicitly say so!
+
+Well, `booster` cannot possibly divine which one of these (equally legitimate) options you mean in every scenario, so... it supports them all!
+
+By default, `booster` just sticks with option #1: if you delete a resource, like `post` whose ID is `25`, then you delete just that resource. Nothing dependent gets deleted.
+
+However, if you want to delete all of its dependencies - a cascading delete - you just need to tell it, "for resource `post`, whenever I try to delete it, I want you to do some dependency behaviour first!"
+
+To set up cascading delete or prevention behaviour, set your model with the `delete` field. Here is an example model for `post`:
+
+````JavaScript
+{
+	fields: {
+		id:{required:true}
+		// whatever other fields you want
+	},
+	delete: {
+		children:"comment",
+		policy:"prevent"
+	}
+}
+````
+
+The `delete` property has 2 properties itself. Here are their meanings:
+
+##### children
+The `children` property is the name(s) of the children resources to be checked. In our example above, it will find all `comment` resources that have the `post` property set to the same as our ID. 
+
+So if we have a `post` with ID of `25`, and `comment` as follows:
+
+    {id:"30",content:"I am a comment on post 25", post:"25"}
+    {id:"31",content:"I am a comment on some other post", post:"26"}
+
+Then `delete` will check and find the `comment` with id of `30`, since its `post` (the same name as the resource we are deleting) has a value of `25`, which matches the ID of the resource we are deleting. It will ignore the `comment` with id of `31`, since its `post` has a value of `26`, but we are deleting `post` with id of `25`.
+
+So what does it do when it finds a child? That depends on the policy.
+
+##### policy
+
+The `policy` determines *what* `booster` does when it finds matching children. Here are the possible values for a `policy`. Any other values are ignored:
+
+* `prevent`: if any children are found, the `DELETE` will return a `409`. The only way to delete this resource is to delete all of its children first.
+* `forcece`: if any children are found, the `DELETE` will return a `409`, just like `prevent`. However, if the query parameter `force` is set to `true`, i.e. `?force=true`, it will delete the resource and leave the children alone.
+* `cascade`: if any children are found, the `DELETE` will delete all of the children as well, and onwards to further descendents based on their policies.
+* `allow`: Do not bother checking the children, just delete the resource. This is the same as having no `delete` property.
+
+
+
 #### Extend
 Every model class has a few pre-defined methods (listed in detail in the next section). However, if you want additional custom methods, you can add them here. 
 
@@ -1579,7 +1639,7 @@ What methods are there on the models themselves? And when would you want to use 
 * update: update replace one or more objects. Signature: `update(key,model,callback)`
 * patch: update **without** replace one or more objects. Signature: `patch(key,model,callback)`
 * create: create a new object. Signature: `create(model,callback)`
-* destroy: destroy an object. Signature: `destroy(key,callback)`
+* destroy: destroy an object. Signature: `destroy(key,parent,force,callback)`
 
 You retrieve model classes, if you need them for controllers (but you can always rely on the default), from `req.booster.models` or your defined `booster.models`. For example, if you called `booster.resource('user')`, then the `user` class is at `req.booster.models.user` and `booster.models.user`. 
 

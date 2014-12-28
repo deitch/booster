@@ -120,6 +120,51 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	validateparent: [
 		{id:"10",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft"},
 		{id:"20",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published"}
+	],
+	deleteparentallow: [
+		{id:"100",text:"I am with children"},
+	],
+	deleteparentprevent: [
+		{id:"10",text:"I am with children"},
+		{id:"20",text:"I am without children"}
+	],
+	deleteparentforce: [
+		{id:"200",text:"I am without children"},
+		{id:"210",text:"I am with children"}
+	],
+	deleteparentcascade: [
+		{id:"300",text:"I am without children"},
+		{id:"310",text:"I am with children only"}
+	],
+	deleteparentcascade_childprevent: [
+		{id:"320",text:"I am with grandchildren and child policy prevent"}
+	],
+	deleteparentcascade_childforce: [
+		{id:"330",text:"I am with grandchildren and child policy force"}
+	],
+	deleteparentcascade_childallow: [
+		{id:"340",text:"I am with grandchildren and child policy allow"}
+	],
+	deleteparentcascade_childcascade: [
+		{id:"350",text:"I am with grandchildren and child policy cascade"}
+	],	
+	deletechild: [
+		{id:"1",text:"I am a child",deleteparentallow:"100",deleteparentprevent:"10",deleteparentforce:"210",deleteparentcascade:"310"}
+	],
+	deletechildprevent: [
+		{id:"2",text:"I am a child",deleteparentcascade_childprevent:"320"}
+	],
+	deletechildforce: [
+		{id:"3",text:"I am a child",deleteparentcascade_childforce:"330"}
+	],
+	deletechildallow: [
+		{id:"4",text:"I am a child",deleteparentcascade_childallow:"340"}
+	],
+	deletechildcascade: [
+		{id:"5",text:"I am a child",deleteparentcascade_childcascade:"350"}
+	],
+	deletegrandchild: [
+		{id:"50",text:"I am a grandchild",deletechildprevent:"2",deletechildforce:"3",deletechildallow:"4",deletechildcascade:"5"}
 	]
 }, IDFIELDS = {
 	different: "key"
