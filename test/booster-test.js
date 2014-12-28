@@ -1339,6 +1339,20 @@ describe('booster',function () {
 					booster.resource('cascadefilter'); // child of cascade with default filter
 					booster.resource('validatetoparent'); // fields that depend on parent validation
 					booster.resource('validateparent'); // parent for validation
+					booster.resource('deleteparentallow'); // parent for delete policies
+					booster.resource('deleteparentprevent'); // parent for delete policies
+					booster.resource('deleteparentforce'); // parent for delete policies
+					booster.resource('deleteparentcascade'); // parent for delete policies
+					booster.resource('deleteparentcascade_childallow'); // parent for delete policies
+					booster.resource('deleteparentcascade_childprevent'); // parent for delete policies
+					booster.resource('deleteparentcascade_childforce'); // parent for delete policies
+					booster.resource('deleteparentcascade_childcascade'); // parent for delete policies
+					booster.resource('deletechild'); // child for delete policies
+					booster.resource('deletechildprevent'); // child for delete policies
+					booster.resource('deletechildforce'); // child for delete policies
+					booster.resource('deletechildallow'); // child for delete policies
+					booster.resource('deletechildcascade'); // child for delete policies
+					booster.resource('deletegrandchild'); // grandchild for delete policies
 					booster.model('only'); // just a model, no route
 					r = request(app);
 					done();
@@ -1889,6 +1903,104 @@ describe('booster',function () {
 						});
 						it('should accept PATCH not in check list', function(done){
 							r.patch('/validatetoparent/2').send({statuschecklist:"foo"}).expect(200,done);
+						});
+					});
+				});
+				describe('delete policies', function(){
+					describe('policy', function(){
+						describe('allow', function(){
+							it('should delete even with children', function(done){
+								r.del('/deleteparentallow/100').expect(204,done);
+							});
+						});
+						describe('prevent', function(){
+							it('should delete without children', function(done){
+								r.del('/deleteparentprevent/20').expect(204,done);
+							});
+							it('should prevent delete if has children', function(done){
+								r.del('/deleteparentprevent/10').expect(403,{delete:"children"},done);
+							});
+							it('should prevent delete even if force', function(done){
+								r.del('/deleteparentprevent/10').query({force:true}).expect(403,{delete:"children"},done);
+							});
+						});
+						describe('force', function(){
+							it('should delete without children', function(done){
+								r.del('/deleteparentforce/200').expect(204,done);
+							});
+							it('should prevent delete if has children', function(done){
+								r.del('/deleteparentforce/210').expect(403,{delete:"children"},done);
+							});
+							it('should allow delete if force while keeping children', function(done){
+								async.series([
+									function (cb) {
+										r.del('/deleteparentforce/210').query({force:true}).expect(204,cb);
+									},
+									function (cb) {
+										r.get('/deletechild').query({deleteparentforce:'210'}).expect(200,cb);
+									}
+								],done);
+							});
+						});
+						describe('cascade', function(){
+							it('should delete without children', function(done){
+								r.del('/deleteparentcascade/300').expect(204,done);
+							});
+							it('should delete including children', function(done){
+								async.series([
+									function (cb) {
+										r.del('/deleteparentcascade/310').expect(204,cb);
+									},
+									function (cb) {
+										r.get('/deletechild').query({deleteparentcascade:'310'}).expect(200,[],cb);
+									}
+								],done);
+							});
+							it('should prevent delete if have grandchildren and child policy is prevent', function(done){
+								r.del('/deleteparentcascade_childprevent/320').expect(403,{delete:"children"},done);
+							});
+							it('should allow delete if have grandchildren and child policy is allow', function(done){
+								async.series([
+									function (cb) {
+										r.del('/deleteparentcascade_childallow/340').expect(204,cb);
+									},
+									function (cb) {
+										r.get('/deletechildallow').query({deleteparentcascade_childallow:"340"}).expect(200,[],cb);
+									},
+									function (cb) {
+										r.get('/deletegrandchild').expect(200,[].concat(db.data("deletegrandchild",0)),cb);
+									}
+								],done);
+							});
+							it('should allow delete if have grandchildren and child policy is cascade', function(done){
+								async.series([
+									function (cb) {
+										r.del('/deleteparentcascade_childcascade/350').expect(204,cb);
+									},
+									function (cb) {
+										r.get('/deletechildcascade').query({deleteparentcascade_childcascade:"350"}).expect(200,[],cb);
+									},
+									function (cb) {
+										r.get('/deletegrandchild').expect(200,[],cb);
+									}
+								],done);
+							});
+							it('should prevent delete if have grandchildren and child policy is force', function(done){
+								r.del('/deleteparentcascade_childforce/330').expect(403,{delete:"children"},done);
+							});
+							it('should allow delete if have force and have grandchildren and child policy is force', function(done){
+								async.series([
+									function (cb) {
+										r.del('/deleteparentcascade_childforce/330').query({force:true}).expect(204,cb);
+									},
+									function (cb) {
+										r.get('/deletechildforce').query({deleteparentcascade_childforce:'330'}).expect(200,[],cb);
+									},
+									function (cb) {
+										r.get('/deletegrandchild').expect(200,[].concat(db.data("deletegrandchild",0)),cb);
+									}
+								],done);
+							});
 						});
 					});
 				});
