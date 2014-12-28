@@ -10,11 +10,13 @@
 		"restful",
 		"rest",
 		"REST",
+		"api",
 		"mvc",
 		"web-framework",
 		"express",
 		"api",
 		"models",
+		"controllers",
 		"validation"
 	],
 	"dependencies": {
