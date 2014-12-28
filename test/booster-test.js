@@ -1823,6 +1823,15 @@ describe('booster',function () {
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({statuscheck:"published"}).expect(200,done);
 						});
+						it('should accept create not in check list', function(done){
+							r.post('/validatetoparent').send({statuscheck:"foo",validateparent:"20"}).expect(201,done);
+						});
+						it('should accept PUT not in check list', function(done){
+							r.put('/validatetoparent/2').send({statuscheck:"foo",validateparent:"20"}).expect(200,done);
+						});
+						it('should accept PATCH not in check list', function(done){
+							r.patch('/validatetoparent/2').send({statuscheck:"foo"}).expect(200,done);
+						});
 					});
 					describe('with comma-separated restriction', function(){
 						it('should reject unmatched create', function(done){
@@ -1842,6 +1851,15 @@ describe('booster',function () {
 						});
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({statuscheckcomma:"published"}).expect(200,done);
+						});
+						it('should accept create not in check list', function(done){
+							r.post('/validatetoparent').send({statuscheckcomma:"foo",validateparent:"20"}).expect(201,done);
+						});
+						it('should accept PUT not in check list', function(done){
+							r.put('/validatetoparent/2').send({statuscheckcomma:"foo",validateparent:"20"}).expect(200,done);
+						});
+						it('should accept PATCH not in check list', function(done){
+							r.patch('/validatetoparent/2').send({statuscheckcomma:"foo"}).expect(200,done);
 						});
 					});
 					describe('with array restriction', function(){
@@ -1863,8 +1881,16 @@ describe('booster',function () {
 						it('should accept matched PATCH', function(done){
 							r.patch('/validatetoparent/2').send({statuschecklist:"published"}).expect(200,done);
 						});
+						it('should accept create not in check list', function(done){
+							r.post('/validatetoparent').send({statuschecklist:"foo",validateparent:"20"}).expect(201,done);
+						});
+						it('should accept PUT not in check list', function(done){
+							r.put('/validatetoparent/2').send({statuschecklist:"foo",validateparent:"20"}).expect(200,done);
+						});
+						it('should accept PATCH not in check list', function(done){
+							r.patch('/validatetoparent/2').send({statuschecklist:"foo"}).expect(200,done);
+						});
 					});
-					
 				});
 				describe('with unique fields', function(){
 				  describe('single unique field', function(){
