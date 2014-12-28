@@ -112,6 +112,14 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	],
 	cascadefilter: [
 		{id:"1",singlevalue:"singlefilter",arrayvalue:"arrayfilter",anyvalue:"anyfilter",multiplechildren:"multiplefilter",cascadeone:"1"}
+	],
+	validatetoparent: [
+		{id:"1",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"1"},
+		{id:"2",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"2"}
+	],
+	validateparent: [
+		{id:"1",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft"},
+		{id:"2",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published"}
 	]
 }, IDFIELDS = {
 	different: "key"

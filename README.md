@@ -1105,10 +1105,42 @@ Here are the parts of cascade you can set:
 
 
 #### Validations
-Validations are one of:
+
+Validation for a field is an object that defines the validations to which any creation of an object will be subject. The actual validations themselves will be in the property `valid`.
+
+For example, if you have a field called `name`, it will look like this:
+
+    name: {  validation:{valid:"alphanumeric"}  }
+
+Or 
+
+    name: {  validation:{valid:["email","alphanumeric"]}  }
+
+Or is a function, like this:
+
+    name: {  validation:{valid:function(){...}}  }
+
+
+However, you can just simplify it as follows:
+
+    name: {  validation: "alphanumeric"  }
+
+Or 
+
+    name: {  validation: ["email","alphanumeric"]  }
+
+Or is a function, like this:
+
+    name: {  validation: function(){...} }
+
+
+
+Validations - in the object format as the value of `valid` or in the simplified format as the top-level property - are one of:
 
 * Predefined validations that you can use to check the field
 * An arbitrary function that you can define to validate and even manipulate the field
+
+Each of these is explained in more detail below.
 
 ##### Predefined validations
 Predefined validations are a single string or an array of strings that name validations to which to subject each model *before* sending persisting them to the database or accepting them from the database. 
@@ -1131,6 +1163,22 @@ The following validations exist as of this writing:
 * `list:item,item,item,...,item`: must be one of the string items in the list
 
 If two or more validations are provided in an array, then **all** of the validations must pass (logical AND).
+
+
+###### Direct Access
+You can directly access the predefined validations as:
+
+````JavaScript
+var validator = require('booster').validator;
+````
+
+The validator is called with the item to validate and the validation:
+
+````JavaScript
+validator("abcd","email"); //false
+validator("abcd","alphanumeric"); // true
+````
+
 
 ##### Validation Functions
 Sometimes, the pre-defined validations just are not enough. You want to define your own validation functions. No problem! Instead of a string or array of strings, simply define a function, like so:
@@ -1223,20 +1271,74 @@ Then the response from the validation function will be `{valid:true,value:"assde
 
     {id:"10",name:"john",password:"assde232shwsww1323"}
 
+##### Parent Validation
+In addition to the usual validations - predefined and function - you have the option to create "parent" validations. 
 
-##### Direct Access
-You can directly access the predefined validations as:
+You have a model called `category` and another called `article`. Each `article` belongs to one, and just one, category (for the database-minded, N:1 relationship. In addition, both articles and categories have a field called `status`, which can be set to "published" or "draft". Well, then, your models look like this:
 
-````JavaScript
-var validator = require('booster').validator;
-````
-
-The validator is called with the item to validate and the validation:
 
 ````JavaScript
-validator("abcd","email"); //false
-validator("abcd","alphanumeric"); // true
+// category
+{
+	fields: {
+		id: {required:true},
+		name: {required:true, validation:"alphanumeric"},
+		status: {validation:"set:draft,published"}
+	}
+}
+
+// article
+{
+	fields: {
+		id: {required:true},
+		category: {required:true}, // which category this article is part of
+		name: {required:true, validation:"alphanumeric"},
+		status: {validation:"set:draft,published"}
+	}
+}
 ````
+
+You want to *ensure* that even though an article could be draft or published, do **not** let someone set an article to `"published"` unless its category is *also* already published. Makes sense right? No one can see the article, unless they already can see the category. In other words, this is a *more* restrictive validation. 
+
+The field `status` must pass the usual validations - one of `"draft"` or `"published"` **and** it must have its category already published.
+
+You know booster will help you do this, right? Sure you do! Just tell the `article` it cannot be published if the parent is not also:
+
+````JavaScript
+// article
+{
+	fields: {
+		id: {required:true},
+		category: {required:true}, // which category this article is part of
+		name: {required:true, validation:"alphanumeric"},
+		status: {validation:
+			{valid:"set:draft,published",parent:"category",check:"published"}
+		}
+	}
+}
+````
+
+The above means, "only accept as valid one of 'draft' or 'published'. Once you passed that check, get the model `category` (our 'parent'), and, if we are setting our status to 'published', check that the parent is also 'published'".
+
+Note that we have to use the object format for `validation` here; the simplified format will not work.
+
+The properties of the `validation` object thus are:
+
+* `valid`: the usual validation, as described above
+* `parent`: what field we need to check in ourselves, and grab an object whose ID matches that
+* `check`: which values of this field we should check
+
+The `check` property deserves a little more explanation.
+
+* If it is not defined, *every* setting of the field will trigger a check that the parent field of the same name matches our proposed value
+* If it is a string, only check if the set value of this field matches the string
+* If it is an array, only check if the set value matches one of the strings in the array
+
+Here are some examples, assuming all are set for `status`:
+
+* `{parent:"category",check:"published"}` - if we set `status` to "published", check the parent; any other value, do not check
+* `{parent:"category",check:["published","foo"]}` - if we set `status` to "published" or "foo", check the parent; any other value do not check
+* `{parent:"category"}` - check the parent for *any* value change for `status`
 
 
 #### Visibility
