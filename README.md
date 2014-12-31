@@ -194,6 +194,8 @@ Each type of http verb gives the appropriate response, with some options to chan
 |`PATCH`|200|ID of updated object *OR* updated object)|400,404|Error message or blank|
 |`DELETE`|204||400,404|Error message or blank|
 
+More details are available in [responses.md](./responses.md).
+
 ##### GET after PUT/PATCH
 `PUT` and `PATCH` return the ID of the updated object in the body of the response. Sometimes, though, you prefer to have the request return the updated object in its entirety in the body.
 

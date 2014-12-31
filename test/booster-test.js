@@ -2007,19 +2007,19 @@ describe('booster',function () {
 				describe('with unique fields', function(){
 				  describe('single unique field', function(){
 				    it('should reject create with conflict', function(done){
-				      r.post('/singleunique').type('json').send({firstname:"steve",lastname:"smith"}).expect(409,done);
+				      r.post('/singleunique').type('json').send({firstname:"steve",lastname:"smith"}).expect(409,{lastname:"notunique"},done);
 				    });
 						it('should accept create with no conflict', function(done){
 				      r.post('/singleunique').type('json').send({firstname:"steve",lastname:"jackson"}).expect(201,done);
 						});
 						it('should reject update with conflict', function(done){
-				      r.put('/singleunique/1').type('json').send({firstname:"samantha",lastname:"jones"}).expect(409,done);
+				      r.put('/singleunique/1').type('json').send({firstname:"samantha",lastname:"jones"}).expect(409,{lastname:"notunique"},done);
 						});
 						it('should accept update with no conflict', function(done){
 				      r.put('/singleunique/1').type('json').send({firstname:"samantha",lastname:"stevenson"}).expect(200,done);
 						});
 						it('should reject patch with conflict', function(done){
-				      r.patch('/singleunique/1').type('json').send({lastname:"jones"}).expect(409,done);
+				      r.patch('/singleunique/1').type('json').send({lastname:"jones"}).expect(409,{lastname:"notunique"},done);
 						});
 						it('should accept patch with no conflict', function(done){
 				      r.patch('/singleunique/1').type('json').send({lastname:"stevenson"}).expect(200,done);
@@ -2027,37 +2027,37 @@ describe('booster',function () {
 				  });
 					describe('multiple unique fields', function(){
 				    it('should reject create with first field conflict', function(done){
-				      r.post('/doubleunique').type('json').send({firstname:"steve",lastname:"smith"}).expect(409,done);
+				      r.post('/doubleunique').type('json').send({firstname:"steve",lastname:"smith"}).expect(409,{lastname:"notunique"},done);
 				    });
 				    it('should reject create with other field conflict', function(done){
-				      r.post('/doubleunique').type('json').send({firstname:"jill",lastname:"stevenson"}).expect(409,done);
+				      r.post('/doubleunique').type('json').send({firstname:"jill",lastname:"stevenson"}).expect(409,{firstname:"notunique"},done);
 				    });
 				    it('should reject create with both fields conflict', function(done){
-				      r.post('/doubleunique').type('json').send({firstname:"jill",lastname:"smith"}).expect(409,done);
+				      r.post('/doubleunique').type('json').send({firstname:"jill",lastname:"smith"}).expect(409,{firstname:"notunique",lastname:"notunique"},done);
 				    });
 						it('should accept create with no conflict', function(done){
 				      r.post('/doubleunique').type('json').send({firstname:"steve",lastname:"stevenson"}).expect(201,done);
 						});
 						it('should reject update with first field conflict', function(done){
-				      r.put('/doubleunique/1').type('json').send({firstname:"steve",lastname:"jones"}).expect(409,done);
+				      r.put('/doubleunique/1').type('json').send({firstname:"steve",lastname:"jones"}).expect(409,{lastname:"notunique"},done);
 						});
 						it('should reject update with other field conflict', function(done){
-				      r.put('/doubleunique/1').type('json').send({firstname:"jill",lastname:"stevenson"}).expect(409,done);
+				      r.put('/doubleunique/1').type('json').send({firstname:"jill",lastname:"stevenson"}).expect(409,{firstname:"notunique"},done);
 						});
 						it('should reject update with both field conflict', function(done){
-				      r.put('/doubleunique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,done);
+				      r.put('/doubleunique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,{firstname:"notunique",lastname:"notunique"},done);
 						});
 						it('should accept update with no conflict', function(done){
 				      r.put('/doubleunique/1').type('json').send({firstname:"steve",lastname:"stevenson"}).expect(200,done);
 						});
 						it('should reject patch with first field conflict', function(done){
-				      r.patch('/doubleunique/1').type('json').send({lastname:"jones"}).expect(409,done);
+				      r.patch('/doubleunique/1').type('json').send({lastname:"jones"}).expect(409,{lastname:"notunique"},done);
 						});
 						it('should reject patch with other field conflict', function(done){
-				      r.patch('/doubleunique/1').type('json').send({firstname:"jill"}).expect(409,done);
+				      r.patch('/doubleunique/1').type('json').send({firstname:"jill"}).expect(409,{firstname:"notunique"},done);
 						});
 						it('should reject patch with both field conflict', function(done){
-				      r.patch('/doubleunique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,done);
+				      r.patch('/doubleunique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,{firstname:'notunique',lastname:"notunique"},done);
 						});
 						it('should accept patch with no conflict', function(done){
 				      r.patch('/doubleunique/1').type('json').send({firstname:"steve",lastname:"stevenson"}).expect(200,done);
@@ -2065,7 +2065,7 @@ describe('booster',function () {
 					});
 					describe('combination unique fields', function(){
 				    it('should reject create with both fields conflict', function(done){
-				      r.post('/combounique').type('json').send({firstname:"sam",lastname:"smith"}).expect(409,done);
+				      r.post('/combounique').type('json').send({firstname:"sam",lastname:"smith"}).expect(409,{"firstname:lastname":"notunique"},done);
 				    });
 						it('should accept create with first field conflict', function(done){
 				      r.post('/combounique').type('json').send({firstname:"sam",lastname:"stevenson"}).expect(201,done);
@@ -2077,7 +2077,7 @@ describe('booster',function () {
 				      r.post('/combounique').type('json').send({firstname:"steve",lastname:"stevenson"}).expect(201,done);
 						});
 				    it('should reject update with both fields conflict', function(done){
-				      r.put('/combounique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,done);
+				      r.put('/combounique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,{"firstname:lastname":"notunique"},done);
 				    });
 						it('should accept update with first field conflict', function(done){
 				      r.put('/combounique/1').type('json').send({firstname:"jill",lastname:"stevenson"}).expect(200,done);
@@ -2089,7 +2089,7 @@ describe('booster',function () {
 				      r.put('/combounique/1').type('json').send({firstname:"steve",lastname:"stevenson"}).expect(200,done);
 						});
 				    it('should reject patch with both fields conflict', function(done){
-				      r.patch('/combounique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,done);
+				      r.patch('/combounique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,{"firstname:lastname":"notunique"},done);
 				    });
 				    it('should accept patch with both fields conflict if it is the same object', function(done){
 				      r.patch('/combounique/2').type('json').send({firstname:"jill",lastname:"jones"}).expect(200,done);
@@ -2109,7 +2109,7 @@ describe('booster',function () {
 						      r.patch('/combounique/1').type('json').send({firstname:"jill"}).expect(200,cb);
 								},
 								function (cb) {
-						      r.patch('/combounique/1').type('json').send({lastname:"jones"}).expect(409,cb);
+						      r.patch('/combounique/1').type('json').send({lastname:"jones"}).expect(409,{"firstname:lastname":"notunique"},cb);
 								}
 							],function (err) {
 								if (err) {
