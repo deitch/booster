@@ -1110,7 +1110,7 @@ describe('booster',function () {
 			describe('with controllers',function () {
 				beforeEach(function (done) {
 					booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers',filters:__dirname+'/resources/filters'});
-					booster.resource('post',{resource:{filter:["get"]}});
+					booster.resource('post',{resource:{filter:["get"],processor:["get"]}});
 					booster.resource('property');
 					booster.resource('filter');
 					booster.resource('processor');
@@ -1314,6 +1314,12 @@ describe('booster',function () {
 					});
 					it('should run post.all() before post.create()', function(done){
 					  r.post('/processor').query({ptype:"both"}).expect("processor",'["all","create"]').expect(201,done);
+					});
+					it('should run post.all() on resource-as-a-property getter', function(done){
+						r.get('/post/1/processor').query({ptype:"all"}).expect("processor","all").end(done);
+					});
+					it('should run post.index() on resource-as-a-property getter', function(done){
+						r.get('/post/1/processor').query({ptype:"index"}).expect("processor","index").end(done);
 					});
 				});
 			});

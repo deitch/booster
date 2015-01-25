@@ -21,7 +21,7 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	withdefault: [
 	],
 	processor: [
-		{id:"1",title:"processor",content:"I am processed"}
+		{id:"1",title:"processor",content:"I am processed",post:"1"}
 	],
 	comment: [
 		{id:"1",post:"1",comment:"First comment on 1st post"},
