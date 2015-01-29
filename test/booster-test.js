@@ -1129,8 +1129,8 @@ describe('booster',function () {
 					booster.init({db:db,app:app,controllers:__dirname+'/resources/controllers',filters:__dirname+'/resources/filters'});
 					booster.resource('post',{resource:{filter:["get"],processor:["get"]}});
 					booster.resource('property');
-					booster.resource('filter');
-					booster.resource('processor');
+					booster.resource('filter',{},{base:'/api',only:["index","show"]});
+					booster.resource('processor',{},{base:'/api',only:["index","show"]});
 					r = request(app);
 					done();
 				});
@@ -1264,6 +1264,42 @@ describe('booster',function () {
 						    r.get(path).query(q).expect(403,"filter.all",done);
 						  });
 						});
+						describe('with only restriction', function(){
+							describe('show', function(){
+								beforeEach(function(){
+									path = '/api/filter/1';
+								});
+							  it('should allow through request without block', function(done){
+							    r.get(path).expect(200,db.data("filter",0),done);
+							  });
+							  it('should block the global one', function(done){
+							    r.get(path).query({all:"all"}).expect(403,"all",done);
+							  });
+							  it('should block the filter.global one', function(done){
+							    r.get(path).query({"filter.all":"filter.all"}).expect(403,"filter.all",done);
+							  });
+							  it('should block the show one', function(done){
+							    r.get(path).query({"filter.show":"filter.show"}).expect(403,"filter.show",done);
+							  });
+							});
+							describe('index', function(){
+								beforeEach(function(){
+									path = '/api/filter';
+								});
+							  it('should allow through request without block', function(done){
+							    r.get(path).expect(200,db.data("filter"),done);
+							  });
+							  it('should block the global one', function(done){
+							    r.get(path).query({all:"all"}).expect(403,"all",done);
+							  });
+							  it('should block the filter.global one', function(done){
+							    r.get(path).query({"filter.all":"filter.all"}).expect(403,"filter.all",done);
+							  });
+							  it('should block the index one', function(done){
+							    r.get(path).query({"filter.index":"filter.index"}).expect(403,"filter.index",done);
+							  });
+							});
+						});
 					});
 					describe('via resource-as-a-property', function(){
 						beforeEach(function(){
@@ -1320,23 +1356,33 @@ describe('booster',function () {
 					});
 				});
 				describe('post processors', function(){
-					it('should run the post.all()', function(done){
-					  r.get('/processor/1').query({ptype:"all"}).expect("processor","all").expect(200,done);
+					describe('normal', function(){
+						it('should run the post.all()', function(done){
+						  r.get('/processor/1').query({ptype:"all"}).expect("processor","all").expect(200,done);
+						});
+						it('should run the specific post.create()', function(done){
+						  r.post('/processor').query({ptype:"create"}).expect("processor","create").expect(201,done);
+						});
+						it('should change the response for PUT', function(done){
+						  r.put('/processor/1').send({special:"data"}).expect(400,"changed",done);
+						});
+						it('should run post.all() before post.create()', function(done){
+						  r.post('/processor').query({ptype:"both"}).expect("processor",'["all","create"]').expect(201,done);
+						});
+						it('should run post.all() on resource-as-a-property getter', function(done){
+							r.get('/post/1/processor').query({ptype:"all"}).expect("processor","all").end(done);
+						});
+						it('should run post.index() on resource-as-a-property getter', function(done){
+							r.get('/post/1/processor').query({ptype:"index"}).expect("processor","index").end(done);
+						});
 					});
-					it('should run the specific post.create()', function(done){
-					  r.post('/processor').query({ptype:"create"}).expect("processor","create").expect(201,done);
-					});
-					it('should change the response for PUT', function(done){
-					  r.put('/processor/1').send({special:"data"}).expect(400,"changed",done);
-					});
-					it('should run post.all() before post.create()', function(done){
-					  r.post('/processor').query({ptype:"both"}).expect("processor",'["all","create"]').expect(201,done);
-					});
-					it('should run post.all() on resource-as-a-property getter', function(done){
-						r.get('/post/1/processor').query({ptype:"all"}).expect("processor","all").end(done);
-					});
-					it('should run post.index() on resource-as-a-property getter', function(done){
-						r.get('/post/1/processor').query({ptype:"index"}).expect("processor","index").end(done);
+					describe('with only restriction', function(){
+						it('should run the post.all() for index', function(done){
+						  r.get('/api/processor').query({ptype:"all"}).expect("processor","all").expect(200,done);
+						});
+						it('should run the post.all() for show', function(done){
+						  r.get('/api/processor/1').query({ptype:"all"}).expect("processor","all").expect(200,done);
+						});
 					});
 				});
 			});
