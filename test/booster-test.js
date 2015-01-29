@@ -917,9 +917,11 @@ describe('booster',function () {
 				beforeEach(function (done) {
 					booster.init({db:db,app:app});
 					booster.resource('post');
+					booster.resource('user');
 					booster.resource('comment',{parent:'post'},{only:["index","show"]});
 					booster.resource('nestRequire',{parent:'post',parentProperty:true});
 					booster.resource('nestOptional',{parent:'post',parentProperty:true,parentDefault:true});
+					booster.resource('doublenest',{parent:'post'},{parent:'user'});
 					booster.resource('multiparent',{},{parent:'post'});
 					booster.resource('multichild',{},{parent:'multiparent'});
 					r = request(app);
@@ -973,7 +975,13 @@ describe('booster',function () {
 					});
 					it('should 404 DELETE for absurd ID for nested',function (done) {
 						r.del('/post/1/comment/12345').expect(404).end(done);
-					});		
+					});
+					it('should map doublenest LIST to first parent', function(done){
+						r.get('/post/1/doublenest').expect(200,db.data("doublenest",{post:"1"})).end(done);
+					});
+					it('should map doublenest LIST to second parent', function(done){
+						r.get('/user/1/doublenest').expect(200,db.data("doublenest",{user:"1"})).end(done);
+					});
 				});
 				describe('parent property', function(){
 					it('should reject POST when missing parent property', function(done){

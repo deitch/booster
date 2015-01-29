@@ -28,6 +28,11 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"2",post:"1",comment:"Second comment on 1st post"},
 		{id:"3",post:"3",comment:"First comment on 3rd post"}
 	],
+	doublenest: [
+		{id:"1",post:"1",comment:"First comment on 1st post",user:"1"},
+		{id:"2",post:"3",comment:"First comment on 3rd post",user:"1"},
+		{id:"3",post:"3",comment:"Second comment on 3rd post",user:"2"}
+	],
 	nestRequire: [
 		{id:"1",post:"1",comment:"First comment on 1st post"},
 		{id:"2",post:"1",comment:"Second comment on 1st post"},
