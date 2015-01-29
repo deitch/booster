@@ -922,6 +922,7 @@ describe('booster',function () {
 					booster.resource('nestRequire',{parent:'post',parentProperty:true});
 					booster.resource('nestOptional',{parent:'post',parentProperty:true,parentDefault:true});
 					booster.resource('doublenest',{parent:'post'},{parent:'user'});
+					booster.resource('nestwithonly',{parent:'post',only:["index","show"]});
 					booster.resource('multiparent',{},{parent:'post'});
 					booster.resource('multichild',{},{parent:'multiparent'});
 					r = request(app);
@@ -981,6 +982,14 @@ describe('booster',function () {
 					});
 					it('should map doublenest LIST to second parent', function(done){
 						r.get('/user/1/doublenest').expect(200,db.data("doublenest",{user:"1"})).end(done);
+					});
+				});
+				describe('nestwithonly', function(){
+					it('should map nested LIST',function (done) {
+						r.get('/post/1/nestwithonly').expect(200,db.data("nestwithonly",{post:"1"})).end(done);
+					});
+					it('should map nested GET',function (done) {
+						r.get('/post/1/comment/1').expect(200,db.data("nestwithonly",0)).end(done);
 					});
 				});
 				describe('parent property', function(){
