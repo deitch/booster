@@ -1156,7 +1156,10 @@ The following validations exist as of this writing:
 * `notblank`: Is not null, undefined or a string made up entirely of whitespace
 * `notpadded`: Does not start or end with whitespace
 * `email`: Is a valid email pattern. Does *not* actually check the email address. For example, `fooasao12122323_12saos@gmail.com` is a valid email pattern, but I am pretty sure that the address is not in use.
-* `integer`: must be a valid integer
+* `integer`: must be a valid javascript number. **Note:** JavaScript does not distinguish between different number types; all numbers are 64-bit floats, so neither do we.
+* `number`: same as `integer`
+* `float`: same as `integer`
+* `double`: same as `integer`
 * `alphanumeric`: must be a valid alphanumeric `a-zA-Z0-9`
 * `string`: must be a string
 * `boolean`: must be a boolean `true` or `false`
