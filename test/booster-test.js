@@ -1783,6 +1783,26 @@ describe('booster',function () {
 						it('should accept PATCH with valid list field', function(done){
 							r.patch('/'+name+'/2').send({list:"a"}).expect(200,done);
 						});
+						describe('numbers', function(){
+							it('should reject POST with string for integer field', function(done){
+								r.post('/'+name).send({int:"2"}).expect(400,{int:"integer"},done);
+							});
+							it('should reject PUT with string for integer field ', function(done){
+								r.put('/'+name+'/2').send({int:"2"}).expect(400,{int:"integer"},done);
+							});
+							it('should reject PATCH with string for integer field ', function(done){
+								r.patch('/'+name+'/2').send({int:"2"}).expect(400,{int:"integer"},done);
+							});
+							it('should accept POST with integer for integer field', function(done){
+								r.post('/'+name).send({int:2}).expect(201,done);
+							});
+							it('should accept PUT with integer for integer field', function(done){
+								r.put('/'+name+'/2').send({int:2}).expect(200,done);
+							});
+							it('should accept PATCH with integer for integer field', function(done){
+								r.patch('/'+name+'/2').send({int:2}).expect(200,done);
+							});
+						});
 					});
 					describe('asynchronous', function(){
 					  beforeEach(function(){

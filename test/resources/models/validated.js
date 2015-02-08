@@ -8,6 +8,7 @@ module.exports = {
 		abc: {validation: function (name,field,mode,attrs) {
 			return (attrs[field] === "abc");
 		}},
+		int: {validation:"integer"},
 		list: {validation:"list:a,b,c"},
 		def: {validation: function (name,field,mode,attrs) {
 			var ret = {};
