@@ -951,12 +951,89 @@ Your post-processor filter has 3 options:
 * Error: as usual, you can always call `next(error)` to invoke expressjs's error handler.
 * Change the response: if it want to alternate the response, call `res.send()` or anything else. 
 
+#### Sorting and Limiting
+What if you want to sort the results of a `GET` (i.e. `index`) - ascending or descending - by a specific field like `age`, or limit the results to only, say, the first 20 results?
+
+Turns out it is pretty easy to do... because you don't need booster to do it.
+
+One way to do it is to `GET` the entire thing and then sort it client-side, or do it server-side in post-processors, as we just saw.
+
+````JavaScript
+r.get('/users').end(function(err,res){
+	// now we have all of the users over the network
+	// all users in descending order
+	var users = _.sortBy(res,"age").reverse();
+	// now get the first 20
+	users = users.slice(0,20);
+});
+````
+
+But that is a royal pain, and incredibly inefficient to boot! You had to extract all of them from the database, send them all over the wire to the client (possibly a browser), then sort and reverse them all, then take the first 20. How would you like to do that with 10MM records?
+
+You could save part of it by filtering it in the controller using post-processors:
+
+````JavaScript
+{
+	post: {
+		index: function(req,res,next,status,body) {
+			if (status === 200 && body && body.length > 0) {
+				// all users in descending order
+				var users = _.sortBy(body,"age").reverse();
+				// now get the first 20
+				users = users.slice(0,20);
+				// save it to the body
+			}
+		}
+	}
+}
+````
+
+But you still need to do a lot of extra work in the post-processor, and you are still retrieving too many records over the nearby network from the data store.
+
+The correct way to do this is to have the database do the sorting and filtering. Most database drivers support some form of sorting by a field and limiting the count. The only question, then, is how we get the correct parameters to the database driver.
+
+The solution is simple: **query parameters**.
+
+As you have seen earlier, and will see again below, every query parameter *except those beginning with `$b.`* are passed to `model.find()` and hence `db.find()` as is. In order to sort and filter, all you need to do is pass those parameters to the request query.
+
+Here is an example. Let's say your database driver supports a search parameter `sort`. If `sort` is present, it will sort the response by the field, descending if negative:
+
+    {sort:"age"} - sort by age ascending
+    {sort:"-age"} - sort by age descending
+
+Similarly, it might support count:
+
+    {count:20} - return the first 20 matching records
+
+In combination, you might have 
+
+    {sort:"age",count:20} - give me the 20 youngest
+    {sort:"-age",count:20} - give me the 20 oldest
+
+Since all of the query parameters are passed to the driver, just do:
+
+    GET /users?sort=-age&count=20
+
+No booster magic involved!
+
+Aha, you will ask, but does that not tie my REST API query directly to my database driver implementation? Where is the nimbleness I would get from indirection?!
+
+Simple: the database "driver" that you pass to booster need not be the actual MySQL or Mongo or Oracle or whatever driver. It is just an object with a few key functions. Use your own that wraps the standard driver (that is what we do) . Then you can define your own terms and use them. Voilà.
 
 
-And what about all of our models? What do we do with them?
+
+
+
+
+
+
+
+
 
 
 ### Models
+And what about all of our models? What do we do with them?
+
 Models are just standard representations of back-end data from the database. Like controllers, models are completely optional. If you don't provide a model file, the default will be used. If you prefer to design your own, create it in *modelPath* directory, either the default or the one you provided when initializing booster.
 
 So what is in a model? Actually, a model is an automatically generated JavaScript object handler. It is driven by a config file in which you tell it which you tell booster, for this particular model, how to manage data: name in the database, id field, validations, what should be unique, etc.
