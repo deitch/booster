@@ -1,7 +1,7 @@
 /*jslint node:true, nomen:true */
 var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	post: [
-	  {id:"1",title:"foo",content:"Lots of it"},
+	  {id:"1",title:"foo",content:"Lots of it",comment:"125"},
 	  {id:"2",title:"foobar",content:"Even more"},
 	  {id:"3",title:"bar",content:"phd"},
 	  {id:"4",title:"bar",content:"phd",other:"other field"}

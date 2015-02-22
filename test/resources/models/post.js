@@ -3,6 +3,7 @@ module.exports = {
 	fields: {
 		id: {required:true,createoptional:true,mutable:false},
 		title: {required:true},
-		content: {required:false}
+		content: {required:false},
+		comment: {required:false}
 	}
 };

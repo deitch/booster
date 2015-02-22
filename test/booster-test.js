@@ -930,6 +930,9 @@ describe('booster',function () {
 				});
 				describe('regular', function(){
 					it('should map nested LIST',function (done) {
+						r.get('/post/1/comment').expect(200,done);
+					});
+					it('should have nested LIST return correct resource even if parent has property of that name',function (done) {
 						r.get('/post/1/comment').expect(200,db.data("comment",{post:"1"})).end(done);
 					});
 					it('should map nested LIST for multiple parent',function (done) {
@@ -2643,7 +2646,12 @@ describe('booster',function () {
 			done();
 		});
 	  it('should have access to req.booster on non-booster route', function(done){
-	    r.get('/booster').expect(200,{param:{},models:{post:{}}},done);
+	    r.get('/booster').end(function (err,res) {
+	    	res.status.should.eql(200);
+				res.body.models.should.eql({post:{}});
+				res.body.param.should.eql({});
+				done();
+	    });
 	  });
 	});
 });
