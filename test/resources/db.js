@@ -18,6 +18,12 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	  {id:"2",title:"filter two",content:"I am filter no",filter:"no"},
 	  {id:"3",title:"filter three",content:"I am filter blank"}
 	],
+	modelfilter: [
+		{id:"1",title:"Me"}
+	],
+	modelpost: [
+		{id:"1",title:"Me"}
+	],
 	withdefault: [
 	],
 	processor: [

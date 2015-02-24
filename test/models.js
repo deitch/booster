@@ -1,5 +1,5 @@
 /*global before,beforeEach,describe,it */
-/*jslint node:true, debug:true, nomen:true */
+/*jslint node:true, debug:true, nomen:true,expr:true */
 /*jshint unused:vars */
 var express = require('express'), _ = require('lodash'), request = require('supertest'), booster = require('../lib/booster'), 
 async = require('async'), should = require('should'), db = require('./resources/db');
@@ -51,6 +51,8 @@ describe('models',function () {
 		booster.resource('deletechildcascade'); // child for delete policies
 		booster.resource('deletegrandchild'); // grandchild for delete policies
 		booster.model('only'); // just a model, no route
+		booster.model('modelfilter'); // just a model to test model filtering
+		booster.model('modelpost'); // just a model to test model post processing
 		r = request(app);
 		done();
 	});
@@ -1250,5 +1252,137 @@ describe('models',function () {
 				});
 			});
 		});
+	});
+
+	describe('filters', function(){
+		var id = '1';
+	  it('should allow through get without block', function(done){
+			booster.models.modelfilter.get(id,function (err,res) {
+				should(err).not.be.ok;
+				res.should.eql(db.data("modelfilter",0));
+				done();
+			});
+	  });
+	  it('should prevent the blocked get', function(done){
+			booster.models.modelfilter.get('BAD',function (err,res) {
+				should(err).eql("error");
+				should(res).not.be.ok;
+				done();
+			});
+	  });
+	  it('should allow through index without block', function(done){
+			booster.models.modelfilter.find({},function (err,res) {
+				should(err).not.be.ok;
+				res.should.eql(db.data("modelfilter"));
+				done();
+			});
+	  });
+	  it('should prevent the blocked index', function(done){
+			booster.models.modelfilter.find({title:"BAD"},function (err,res) {
+				should(err).eql("error");
+				should(res).not.be.ok;
+				done();
+			});
+	  });
+	  it('should allow through update without block', function(done){
+			booster.models.modelfilter.update(id,{comment:"New comment",title:"New title"},function (err,res) {
+				should(err).not.be.ok;
+				res.should.eql(id);
+				done();
+			});
+	  });
+	  it('should prevent the blocked update', function(done){
+			booster.models.modelfilter.update(id,{title:'BAD',comment:"New comment"},function (err,res) {
+				should(err).eql("error");
+				should(res).not.be.ok;
+				done();
+			});
+	  });
+	  it('should allow through patch without block', function(done){
+			booster.models.modelfilter.patch(id,{comment:"New Comment"},function (err,res) {
+				should(err).not.be.ok;
+				res.should.eql(id);
+				done();
+			});
+	  });
+	  it('should prevent the blocked patch', function(done){
+			booster.models.modelfilter.patch(id,{title:"BAD"},function (err,res) {
+				should(err).eql("error");
+				should(res).not.be.ok;
+				done();
+			});
+	  });
+	  it('should allow through create without block', function(done){
+			booster.models.modelfilter.create({title:"New title"},function (err,res) {
+				should(err).not.be.ok;
+				res.should.be.type("string");
+				done();
+			});
+	  });
+	  it('should prevent the blocked create', function(done){
+			booster.models.modelfilter.create({title:"BAD"},function (err,res) {
+				should(err).eql("error");
+				should(res).not.be.ok;
+				done();
+			});
+	  });
+	  it('should allow through destroy without block', function(done){
+			booster.models.modelfilter.destroy(id,function (err,res) {
+				should(err).not.be.ok;
+				should(db.data("modelfilter",0)).not.be.ok;
+				done();
+			});
+	  });
+	  it('should prevent the blocked destroy', function(done){
+			booster.models.modelfilter.destroy('BAD',function (err,res) {
+				should(err).eql("error");
+				should(res).not.be.ok;
+				done();
+			});
+	  });
+	});
+	describe('post processors', function(){
+	  it('should process for get', function(done){
+			booster.models.modelpost.get('1',function (err,res) {
+				should(err).not.be.ok;
+				res.comment.should.eql("ADDED");
+				done();
+			});
+	  });
+	  it('should process for find', function(done){
+			booster.models.modelpost.find({id:"1"},function (err,res) {
+				should(err).not.be.ok;
+				res[0].comment.should.eql("ADDED");
+				done();
+			});
+	  });
+	  it('should process for update', function(done){
+			booster.models.modelpost.update('1',{comment:"New comment",title:"New title"},function (err,res) {
+				should(err).not.be.ok;
+				booster.models.called.should.eql(res);
+				done();
+			});
+	  });
+	  it('should process for patch', function(done){
+			booster.models.modelpost.patch('1',{comment:"New Comment"},function (err,res) {
+				should(err).not.be.ok;
+				booster.models.called.should.eql(res);
+				done();
+			});
+	  });
+	  it('should process for create', function(done){
+			booster.models.modelpost.create({title:"New title"},function (err,res) {
+				should(err).not.be.ok;
+				booster.models.called.should.eql(res);
+				done();
+			});
+	  });
+	  it('should process for destroy', function(done){
+			booster.models.modelpost.destroy('1',function (err,res) {
+				should(err).not.be.ok;
+				booster.models.called.should.eql('1');
+				done();
+			});
+	  });
 	});
 });

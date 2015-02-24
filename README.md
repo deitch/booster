@@ -34,8 +34,8 @@ Here are just *some* of the key features:
 * `GET` (index) can send list or object
 * Custom base paths (like `/api`)
 * Paths to resource properties
-* Pre-processing filters across all actions or by action
-* Post-processing filters across all actions or by action
+* Pre-processing filters across all actions or by action - at the controller level and at the model level
+* Post-processing filters across all actions or by action - at the controller level and at the model level
 * Automatic list/update of related resources
 * Built-in validations
 * Custom validation functions
@@ -795,7 +795,7 @@ index: function(req,res,next) {
 }
 ````
 
-#### Filters
+#### Controller Filters
 Now, what if you don't want to entirely override the controller function, but perhaps put in a filter. You could easily just do:
 
 ````JavaScript
@@ -809,6 +809,10 @@ module.exports = {
 But you didn't want to have to recreate all of the model calls, error handling, all of the benefits of the default controller. You really just wanted to inject some middleware *prior* to the default `show()` being called!
 
 Booster gives you two really good options for this: `all` global filter, and `filters` for individual ones.
+
+Before you start jumping up and saying, "hey, that is business logic, which should go in the models! [Fat models and skinny controllers!](http://www.slideshare.net/damiansromek/thin-controllers-fat-models-proper-code-structure-for-mvc)", **you are right**. But sometimes your controllers need to do filtering or post-processing that is appropriate at the controller level, hence Filters.
+
+For filters (pre-index/show/update/create/delete) and post-processing (post-index/show/update/create/delete) at the model level, see in the section on models.
 
 ##### Global 'before' option for controllers
 If you are writing controller method overrides, and you want a function that will always be executed *before* the usual index/show/update/create/destroy, just add an `all` function.
@@ -895,7 +899,7 @@ In all three paths, any filters defined for `comment` will run, whether it is to
 		}
 
 
-#### Global Filters
+#### Controller Global Filters
 If you want to have filters that run on *all* resources, the above method will work - create a controller file for `resourceA` and another for `resourceB` and for `resourceC`, but that is pretty repetitive (and therefore not very DRY).
 
 A better solution is "global filters". Global filters look *exactly* like per-resource filters, and have the exact same file structure - `all`, `filter.all`, `filter.show`, etc. - but apply to every resource. To enable it, when initializing booster, just tell it where it is:
@@ -914,10 +918,10 @@ The order of execution is:
 6. controller-specific `filter.show()` (or any other specific one)
 
 
-#### Post-Processors
+#### Controller Post-Processors
 A common use case is one where you want to do some post-processing *before* sending the response back to the client, for example, if you `create` with `POST /users` but before sending back that successful `201`, you want to set up some activation stuff, perhaps using [activator](http://github.com/deitch/activator). Like with filters, you *could* override a controller method, like `create`, but then you lose all of the benefits.
 
-The solution here is post-processors, methods that are called *after* a successful controller method, but *before* sending back the `200` or `201`. Does booster support post-processors? Of course it does! (why are you no surprised?)
+The solution here is post-processors, methods that are called *after* a successful controller method, but *before* sending back the `200` or `201`. Does booster support post-processors? Of course it does! (why are you not surprised?)
 
 Like filters, post-processors are added as properties of the controller object.
 
@@ -1045,6 +1049,8 @@ So what is in a model? Actually, a model is an automatically generated JavaScrip
 * presave: a function to be executed immediately prior to saving a model via update or create. Optional.
 * extend: an object, with functions that will extend the model. Optional. See below.
 * delete: rules for creating, preventing or enforcing cascading deletes. Optional. See below.
+* filter: filters before performing a model action
+* post: actions to take after the model
 
 An actual model instance is just a plain old javascript object (POJSO). The data returned from the database to a controller should be a POJSO, as should the data sent back.
 
@@ -1567,56 +1573,6 @@ db.find('user',{email:"john@gmail.com","name":"john","_join":"AND"},callback);
 Only if it finds no matches at all, will it proceed to save/update/create the model.
 
 
-#### presave
-Sometimes, you need to do some processing in the model before saving it to the server. For example, if you are saving a reservation for a table, you might want to check that the table actually exists and that no other reservation is in place for that table. You can easily check the existence of another reservation for that table at that time by using `unique`:
-
-````JavaScript
-module.exports = {
-	fields: {
-		// lots of fields here
-	},
-	unique: [["table","time"]] // makes sure that the combination of table and time is unique
-}
-````
-
-How do we do a presave?
-
-````JavaScript
-module.exports = {
-	presave: function(attrs,models,callback) {
-		// do whatever processing you need here
-	}
-}
-````
-
-The signature of a `presave` function is: `function(attrs,models,callback)`, where:
-
-* attrs: the model you will be saving, a simple JavaScript object
-* models: an object with all of the model classes, so you can do searches on other classes. See below.
-* callback: the callback you should call back (get it?) when your `presave()` is done. Classic signature of `callback(err,res)`. If `err` is anything other than `null`, `undefined` or `false`, the save will not proceed, and the errors will be passed to the callback of the original function that called `model.save()` or `model.update()`.
-
-Using our above example with tables and reservations, you need to be able to perform a search on table before you can let the reservation go through. Not a problem. Our example skips lots of validations.
-
-````JavaScript
-module.exports = {
-	fields: {id: {required:true}, table: {required:true}, user: {required:true}, time: {required:true}},
-	id: "id",
-	unique: [["table","time"]], // makes the combination of table and time unique
-	presave: function(attrs,models,callback) {
-		models.table.get(attrs.table,function(err,res) {
-			if (err) {
-				callback(err);
-			} else if (!res || res.length !== 1){
-				// we could not find one matching table, uh oh
-				callback("No such table!");
-			} else {
-				// we had no problems, found exactly one matching table
-				callback();
-			}
-		});
-	}
-}
-````
 
 #### Cascading delete
 OK, so you have your great setup, with some resources dependent on other resources. Using our great example of a blogging system, you have your `post` and your `comment`s. Unfortunately, your latest little blog post offended a few too many people, and you decide to delete it.
@@ -1674,6 +1630,174 @@ The `policy` determines *what* `booster` does when it finds matching children. H
 * `allow`: Do not bother checking the children, just delete the resource. This is the same as having no `delete` property.
 
 
+#### Model Filters
+Just like with controllers, you can insert filters at the model level. Actually, most of the time that is the better place to put it. Here is why.
+
+Let's say, for example, you want to filter out that any request to create an object via `POST /users` that has field `age` set to `18` or higher to set the field `adult` to `true`. That won't easily fit with any of the uniqueness or validation constraints above. You have 2 choices:
+
+* controller filter on `create`
+* model filter on `create`
+
+If you do it on the controller, then `POST /users {age=25}` will work just fine, every time. But what if you create a user from somewhere else in the system? Maybe an API or as the result of some other call? In some other controller or model you do:
+
+    req.booster.models.user.create({age:25});
+
+Oops. Since you put the filtering logic on the *controller*, it will not be called, and your `adult` field will remain unset.
+
+This is the very reason *why* people advocate putting business logic at a higher level than the controller. Hence model filters.
+
+
+If you want an individual filter to run on a specific routing, e.g. `user.update()` or `user.show()`, you do the following:
+
+````JavaScript
+module.exports = {
+	fields: {
+		// my fields
+	},
+	filter: {
+		show: function(key,next) {
+			// do your filtering here
+			// succeeded?
+			next();
+			// failed?
+			next(err);
+		}
+	}
+};
+````
+
+The options for filters are:
+
+* `get`
+* `find`
+* `create`
+* `update`
+* `patch`
+* `destroy`
+
+
+
+##### Filter signature
+The filter functions have the following signatures.
+
+* `get`: `function(key,models,callback)`
+* `find`: `function(search,models,callback)`, where `search` is a searchjs search term
+* `create`: `function(model,models,callback)` where `model` is the JavaScript object that will be saved
+* `update`: `function(key,model,models,callback)` where `key` is the unique ID of the item to be saved, and `model` is the new JavaScript object to replace the existing one
+* `patch`: `function(key,model,models,callback)` where `key` is the unique ID of the item to be saved, and `model` is the a JavaScript object with the properties to override in the existing one
+* `destroy`: `function(key,cmodels,allback)` where `key` is the unique ID of the item to be destroyed
+
+When you are done, just call `callback()`. If you do not want it to proceed, call the `callback(err)`, where `err` is the error we want to return. In most cases, the controller will just return a `400` with the error as the body of the response.
+
+All of the filters have an argument with `models`, which gives direct access to all of the pre-defined models. This gives you the option to create, destroy, get or otherwise affect other models.
+
+For example, let's say we only want to allow users over 18 and under 50. We could use validations or custom validations for this, but let's say we want to do it in a filter.
+
+````JavaScript
+module.exports = {
+	fields: {
+		// my fields here
+	},
+	filter: {
+		create: function(model,models,callback) {
+			if (!model || !model.age || model.age < 18 || model.age > 50) {
+				callback("only users between 18 and 50!");
+			} else {
+				callback();
+			}
+		}
+	}
+}
+````
+
+##### Filter example
+
+You are writing a system for managing a restaurant's reservations. When you save a reservation for a table, you want to check that the table actually exists and that no other reservation is in place for that table. You can easily check the existence of another reservation for that table at that time by using `unique`:
+
+````JavaScript
+module.exports = {
+	fields: {
+		// lots of fields here
+	},
+	unique: [["table","time"]] // makes sure that the combination of table and time is unique
+}
+````
+
+Using our above example with tables and reservations, you need to be able to perform a search on table before you can let the reservation go through. Not a problem. Our example skips lots of validations.
+
+````JavaScript
+module.exports = {
+	fields: {id: {required:true}, table: {required:true}, user: {required:true}, time: {required:true}},
+	id: "id",
+	unique: [["table","time"]], // makes the combination of table and time unique
+	filter: {
+		create: function(model,models,callback) {
+			models.table.get(attrs.table,function(err,res) {
+				if (err) {
+					callback(err);
+				} else if (!res || res.length !== 1){
+					// we could not find one matching table, uh oh
+					callback("No such table!");
+				} else {
+					// we had no problems, found exactly one matching table
+					callback();
+				}
+			});
+		}
+	}
+}
+````
+
+
+#### presave
+presave is a form of filter that is mostly deprecated now. It works, but should be replaced by filters (as we just did in the section above). Presave is the equivalent of a filter applied to `update`,`create` and `patch`.
+
+
+
+#### Model Post-Processors
+A common use case is one where you want to do some post-processing *before* sending the response back to the controller. For example, if you `create` with `POST /users` but before sending back that successful `201`, you want to set up some activation stuff, perhaps using [activator](http://github.com/deitch/activator). 
+
+This was the example we used before, with controller post-processors. But here we want to be smart and ensure that it *always* gets called, *whenever* a user is created.
+
+The solution here is post-processors, methods that are called *after* a model method, but *before* handing the response back to the controller. 
+
+Like filters, post-processors are added as properties of the model object.
+
+````JavaScript
+module.exports = {
+	fields: {
+		// my fields
+	},
+	filter: {
+		update: function(key,model,models,callback) {...}
+	},
+	// use "post" to indicate post-processors
+	post: {
+		create: function(model,models,callback) {}, // "create" will be called after each "create"
+	}
+};
+````
+
+Post-processor signatures are nearly identical to the signatures of the filters:
+
+* `get`: `function(key,models,err,result,callback)`
+* `find`: `function(search,models,err,result,callback)`, where `search` is a searchjs search term
+* `create`: `function(model,models,err,result,callback)` where `model` is the JavaScript object that was saved
+* `update`: `function(key,model,models,err,result,callback)` where `key` is the unique ID of the item that was saved, and `model` is the new JavaScript object that replaced the existing one
+* `patch`: `function(key,model,models,result,callback)` where `key` is the unique ID of the item that was saved, and `model` is the a JavaScript object with the properties that overrode in the existing one
+* `destroy`: `function(key,models,result,callback)` where `key` is the unique ID of the item that was destroyed
+
+Notice that they add two fields: 
+
+* `err`, which returns the error of the model action such as `save`, `find`, etc. If there was no error, it should be `null` or `undefined`.
+* `result`, which is the result of the model action such as `save`, `find`, etc.
+
+
+Your post-processor filter has 3 options:
+
+* Do nothing: if it does not alternate the response at all, just call `callback()` as usual.
+* Error: as usual, you can always call `callback(error)` to invoke indicate an error.
+* Change the response: if it want to alternate the response, modify the `result`, and then call `callback()` or `callback(err)`.
 
 #### Extend
 Every model class has a few pre-defined methods (listed in detail in the next section). However, if you want additional custom methods, you can add them here. 
@@ -1710,6 +1834,29 @@ module.export = {
 ````
 
 In the above example, in addition to the usual `get`, `find`, `create`, etc. model functions, you can call `booster.models.user.checkPassword("abc","asasqgsqb24h2whsq",callback);` and see if "abc" hashes to "asasqgsqb24h2whsq".
+
+Of course, a much cleaner method probably would be to have a separate file in another directory, `require()` it and call it in my controller or wherever else I need it:
+
+````JavaScript
+var passlib = require('../lib/passlib');
+
+
+// this is much messier
+module.exports = {
+	filter: {
+		all: function(req,res,next) {
+			// this is much cleaner
+			passlib.hashPass(req.body.password,function(){
+			});
+
+			// this is much messier
+			req.booster.models.user.hashPass(req.body.password,function(){
+			});
+		}
+	}
+}
+````
+
 
 #### Model Methods
 No, I don't mean ways to display clothing for photography!
