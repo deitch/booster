@@ -25,7 +25,7 @@ describe('statics', function(){
 		booster.models.extender.should.have.property("extra");
 	});	  
 	it('should have the extra on extender models as a function',function () {
-		booster.models.extender.extra.should.be.a("function");
+		booster.models.extender.extra.should.be.type("function");
 	});
 	it('should return the correct element on the extra function', function(){
 	  booster.models.extender.extra().should.equal("I am an extra function");
