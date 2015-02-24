@@ -26,7 +26,7 @@
 	},
 	"devDependencies": {
 		"express":"3.x",
-		"should":"1.x",
+		"should":"4.x",
 		"mocha":"1.x",
 		"supertest":"0.x"
 	},
