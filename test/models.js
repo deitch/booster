@@ -50,6 +50,7 @@ describe('models',function () {
 		booster.resource('deletechildallow'); // child for delete policies
 		booster.resource('deletechildcascade'); // child for delete policies
 		booster.resource('deletegrandchild'); // grandchild for delete policies
+		booster.model('bfields'); // with $b fields that should skip validation but go to filters and post-processors
 		booster.model('only'); // just a model, no route
 		booster.model('modelfilter'); // just a model to test model filtering
 		booster.model('modelpost'); // just a model to test model post processing
@@ -1381,6 +1382,39 @@ describe('models',function () {
 			booster.models.modelpost.destroy('1',function (err,res) {
 				should(err).not.be.ok;
 				booster.models.called.should.eql('1');
+				done();
+			});
+	  });
+	});
+	describe('$b fields', function(){
+		var bfield = '$b.user', update = {name:"New Name"};
+	  it('should process for update', function(done){
+			var now = Date.now();
+			update[bfield] = now;
+			booster.models.bfields.update('1',update,function (err,res) {
+				should(err).not.be.ok;
+				booster.models._filter.should.eql(now);
+				booster.models._post.should.eql(now);
+				done();
+			});
+	  });
+	  it('should process for patch', function(done){
+			var now = Date.now();
+			update[bfield] = now;
+			booster.models.bfields.patch('1',update,function (err,res) {
+				should(err).not.be.ok;
+				booster.models._filter.should.eql(now);
+				booster.models._post.should.eql(now);
+				done();
+			});
+	  });
+	  it('should process for create', function(done){
+			var now = Date.now();
+			update[bfield] = now;
+			booster.models.bfields.create(update,function (err,res) {
+				should(err).not.be.ok;
+				booster.models._filter.should.eql(now);
+				booster.models._post.should.eql(now);
 				done();
 			});
 	  });

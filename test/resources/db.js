@@ -24,6 +24,9 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	modelpost: [
 		{id:"1",title:"Me"}
 	],
+	bfields: [
+		{id:"1",name:"Me"}
+	],
 	withdefault: [
 	],
 	processor: [

@@ -1191,6 +1191,90 @@ Here are the parts of cascade you can set:
 * `children`: which children who have a field named the same as our current model and a value the same as this item's `id` should be cascaded to. This can be a string or an array of strings. If `children` is not set, nothing is ever cascaded (since we have nothing to cascade it to!).
 
 
+##### Ignored Fields
+As stated earlier, a field that appears in the model for a `create`, `update` or `patch`, or in the data retrieved from the data store for a `get` or `find`, **must** be in the list of fields, or you will get an unknwon field error.
+
+The exception is any field that starts with `$b.`. (Sound familiar? It should; it is the *exact same flag* we used for queries.
+
+Any field whose name starts with `$b.` will be passed to `presave` and `filters` and `post` processors, but **not** to the validation functions or the database updates.
+
+What could that be useful for? Well, what if you are creating a group, and business logic dictates that when a group is created, add the creator as a member.
+
+    POST /groups {name:"My Group"}
+
+Now, how do you add the user as a member? Well, the *second* member looks like this:
+
+    POST /memberships {user:25}
+		
+But what about the logic for the first user? No problem, this is domain logic, so let's add it to the model post processors:
+
+````JavaScript
+module.exports = {
+	fields: {
+		name: {required:true,validation:"string"}
+	},
+	post: {
+		create: function(model,models,err,res,callback) {
+			// assuming res = ID of newly created group
+			var uid = ???; // how do we get the user ID?!?!?
+			models.memberships.create({group:res,user:uid},callback);
+		}
+	}
+}
+````
+
+In theory, we could do some strange "get the context" stuff, but that really does break MVC, not to mention dependency injection. The model should not have to know about things like that! Only the controller should.
+
+So we want the controller to inject the user into the model, so the post-processor can handle it. No problem, I will use a controller filter:
+
+````JavaScript
+module.exports = {
+	filter: {
+		create: function(req,res,next){
+			req.body.user = req.GetMyUser(); // the controller should know how to do this
+		}
+	}
+}
+````
+
+You know what happens next, right? The field `user` was never defined as a field on the `groups` model, because it is **not a property of the group**. Our `POST /groups {name:"My Group"}` will return a `400` with the error `{user:"unknownfield"}`.
+
+We need some way to have the filter add the user so it gets passed to the model filters and post-processors, but **not** the validators or database saves.
+
+Hence `$b.`*anything*. 
+
+````JavaScript
+// controller
+module.exports = {
+	filter: {
+		create: function(req,res,next){
+			req.body['$b.user'] = req.GetMyUser(); // the controller should know how to do this
+			// now it will safely skip the validators, but still get passed to filters and post-processors
+		}
+	}
+}
+
+
+// model
+module.exports = {
+	fields: {
+		name: {required:true,validation:"string"}
+	},
+	post: {
+		create: function(model,models,err,res,callback) {
+			// assuming res = ID of newly created group
+			var uid = model['$b.user']; // how do we get the user ID?!?!?
+			models.memberships.create({group:res,user:uid},callback);
+		}
+	}
+}
+
+
+````
+
+
+
+
 
 #### Validations
 
