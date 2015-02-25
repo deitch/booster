@@ -1388,7 +1388,6 @@ describe('models',function () {
 	  });
 	  it('should process for embedded create', function(done){
 			booster.models.modeldoublepost.create({title:"New title"},function (err,res) {
-				console.log("new doublepost is "+res);
 				should(err).not.be.ok;
 				booster.models.called.should.eql(res);
 				done();
