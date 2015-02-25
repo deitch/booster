@@ -55,6 +55,7 @@ describe('models',function () {
 		booster.model('modelfilter'); // just a model to test model filtering
 		booster.model('modelpost'); // just a model to test model post processing
 		booster.model('modeldoublepost'); // just a model to test create post processor that calls another create
+		booster.model('boolean'); // fields with boolean, to test search conversion
 		r = request(app);
 		done();
 	});
@@ -858,6 +859,33 @@ describe('models',function () {
 		});
 		it('should give correct results for greater than match',function (done) {
 			r.get('/integers').query({index:{gt:cutoff}}).expect(200,gt).end(done);
+		});
+	});
+	describe('search by boolean', function(){
+		var data = db.data("boolean"), f = _.where(data,{bool:false}), t = _.where(data,{bool:true});
+		it('should give correct results for false match',function (done) {
+			booster.models.boolean.find({bool:false},function (err,res) {
+				res.should.eql(f);
+				done();
+			});
+		});
+		it('should give correct results for true match',function (done) {
+			booster.models.boolean.find({bool:true},function (err,res) {
+				res.should.eql(t);
+				done();
+			});
+		});
+		it('should give correct results for converting false string match',function (done) {
+			booster.models.boolean.find({bool:"false"},function (err,res) {
+				res.should.eql(f);
+				done();
+			});
+		});
+		it('should give correct results for converting true string match',function (done) {
+			booster.models.boolean.find({bool:"true"},function (err,res) {
+				res.should.eql(t);
+				done();
+			});
 		});
 	});
 	describe('with default filter', function(){

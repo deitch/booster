@@ -117,6 +117,12 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"3",name:"three",index:18},
 		{id:"4",name:"four",index:20},
 	],
+	boolean: [
+		{id:"1",name:"one",bool:false},
+		{id:"2",name:"two",bool:false},
+		{id:"3",name:"three",bool:true},
+		{id:"4",name:"four",bool:true}
+	],
 	cascadeone: [
 		{id:"1",singlevalue:"singleone",arrayvalue:"arrayone",anyvalue:"anyone",multiplechildren:"lots of children",nochildren:"none",errorchildren:"oops"}
 	],
