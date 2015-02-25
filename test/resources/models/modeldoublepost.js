@@ -9,8 +9,6 @@ module.exports = {
 	post: {
 		create: function (model,models,err,result,callback) {
 			models.post.create({title:"New Title"},function (err,res) {
-				console.log("in pps: new doublepost is "+result);
-				console.log("in pps: new post is "+res);
 				models.called = result;
 				callback();
 			});
