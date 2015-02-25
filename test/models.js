@@ -54,6 +54,7 @@ describe('models',function () {
 		booster.model('only'); // just a model, no route
 		booster.model('modelfilter'); // just a model to test model filtering
 		booster.model('modelpost'); // just a model to test model post processing
+		booster.model('modeldoublepost'); // just a model to test create post processor that calls another create
 		r = request(app);
 		done();
 	});
@@ -1382,6 +1383,14 @@ describe('models',function () {
 			booster.models.modelpost.destroy('1',function (err,res) {
 				should(err).not.be.ok;
 				booster.models.called.should.eql('1');
+				done();
+			});
+	  });
+	  it('should process for embedded create', function(done){
+			booster.models.modeldoublepost.create({title:"New title"},function (err,res) {
+				console.log("new doublepost is "+res);
+				should(err).not.be.ok;
+				booster.models.called.should.eql(res);
 				done();
 			});
 	  });
