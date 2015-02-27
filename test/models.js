@@ -845,43 +845,100 @@ describe('models',function () {
 		});
 	  describe('unique field with error suppression', function(){
 			var orig = db.data("uniquesuppress",{id:"1"})[0];
-	    it('should not create with conflict but no error', function(done){
-				async.series([
-					function (cb) {
-						r.post('/uniquesuppress').type('json').send({firstname:"steve",lastname:"smith"}).expect(201,cb);
-					},
-					function (cb) {
-						r.get('/uniquesuppress').query({firstname:"steve"}).expect(200,[],cb);
-					}
-				],done);
-	    });
-			it('should not update with conflict but no error', function(done){
-				async.series([
-					function (cb) {
-						r.put('/uniquesuppress/1').type('json').send({firstname:"samantha",lastname:"jones"}).expect(200,done);
-					},
-					function (cb) {
-						r.get('/uniquesuppress/1').end(function (err,res) {
-							res.status.should.eql(200);
-							res.body.firstname.should.eql(orig.firstname);
-							res.body.lastname.should.eql(orig.lastname);
-						});
-					}
-				],done);
+			describe('via http', function(){
+				it('should not create with conflict but no error', function(done){
+					async.series([
+						function (cb) {
+							r.post('/uniquesuppress').type('json').send({firstname:"steve",lastname:"smith"}).expect(201,cb);
+						},
+						function (cb) {
+							r.get('/uniquesuppress').query({firstname:"steve"}).expect(200,[],cb);
+						}
+					],done);
+				});
+				it('should not update with conflict but no error', function(done){
+					async.series([
+						function (cb) {
+							r.put('/uniquesuppress/1').type('json').send({firstname:"samantha",lastname:"jones"}).expect(200,done);
+						},
+						function (cb) {
+							r.get('/uniquesuppress/1').end(function (err,res) {
+								res.status.should.eql(200);
+								res.body.firstname.should.eql(orig.firstname);
+								res.body.lastname.should.eql(orig.lastname);
+							});
+						}
+					],done);
+				});
+				it('should not patch with conflict but no error', function(done){
+					async.series([
+						function (cb) {
+				      r.patch('/uniquesuppress/1').type('json').send({lastname:"jones"}).expect(200,done);
+						},
+						function (cb) {
+							r.get('/uniquesuppress/1').end(function (err,res) {
+								res.status.should.eql(200);
+								res.body.firstname.should.eql(orig.firstname);
+								res.body.lastname.should.eql(orig.lastname);
+							});
+						}
+					],done);
+				});
 			});
-			it('should not patch with conflict but no error', function(done){
-				async.series([
-					function (cb) {
-			      r.patch('/uniquesuppress/1').type('json').send({lastname:"jones"}).expect(200,done);
-					},
-					function (cb) {
-						r.get('/uniquesuppress/1').end(function (err,res) {
-							res.status.should.eql(200);
-							res.body.firstname.should.eql(orig.firstname);
-							res.body.lastname.should.eql(orig.lastname);
-						});
-					}
-				],done);
+			describe('direct model', function(){
+				it('should not create with conflict but no error', function(done){
+					async.series([
+						function (cb) {
+							booster.models.uniquesuppress.create({firstname:"steve",lastname:"smith"},function (err,res) {
+								should(err).not.be.ok;
+								cb();
+							});
+						},
+						function (cb) {
+							booster.models.uniquesuppress.find({firstname:"steve"},function (err,res) {
+								should(err).not.be.ok;
+								res.length.should.eql(0);
+								cb();
+							});
+						}
+					],done);
+				});
+				it('should not update with conflict but no error', function(done){
+					async.series([
+						function (cb) {
+							booster.models.uniquesuppress.update('1',{firstname:"samantha",lastname:"jones"},function (err,res) {
+								should(err).not.be.ok;
+								cb();
+							});
+						},
+						function (cb) {
+							booster.models.uniquesuppress.get("1",function (err,res) {
+								should(err).not.be.ok;
+								res.firstname.should.eql(orig.firstname);
+								res.lastname.should.eql(orig.lastname);
+								cb();
+							});
+						}
+					],done);
+				});
+				it('should not patch with conflict but no error', function(done){
+					async.series([
+						function (cb) {
+							booster.models.uniquesuppress.patch('1',{lastname:"jones"},function (err,res) {
+								should(err).not.be.ok;
+								cb();
+							});
+						},
+						function (cb) {
+							booster.models.uniquesuppress.get("1",function (err,res) {
+								should(err).not.be.ok;
+								res.firstname.should.eql(orig.firstname);
+								res.lastname.should.eql(orig.lastname);
+								cb();
+							});
+						}
+					],done);
+				});
 			});
 	  });
 	});
