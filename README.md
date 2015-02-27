@@ -42,7 +42,7 @@ Here are just *some* of the key features:
 * Validation based on values in other resources (e.g. child cannot be set to "valid" if "parent" is not "valid")
 * Default field values
 * Default search filters
-* Check for unique items and conflicts
+* Check for unique items and conflicts, and return or suppress errors
 * Restrict mutability by field
 * Cascading field changes to children
 * Cascading delete: automatically cascade deletes to children, prevent if children exist, or prevent unless force
@@ -1045,6 +1045,7 @@ So what is in a model? Actually, a model is an automatically generated JavaScrip
 * name: what the name of this model should be in your database. Optional. Defaults to the name of the file, which is the name of the `resource` you created in `booster.resource('name')`.
 * fields: what fields this model should have, and what validations exist around those fields
 * unique: what unique fields need to exist for this model
+* uniqueerror: whether or not to return an error for a unique conflict
 * id: what the ID field is. We need this so that we can use "unique" comparisons and other services. Optional. Defaults to "id".
 * presave: a function to be executed immediately prior to saving a model via update or create. Optional.
 * extend: an object, with functions that will extend the model. Optional. See below.
@@ -1655,6 +1656,25 @@ db.find('user',{email:"john@gmail.com","name":"john","_join":"AND"},callback);
 ````
 
 Only if it finds no matches at all, will it proceed to save/update/create the model.
+
+##### Suppressing the error
+Sometimes, you want to enforce uniqueness, but **not** to return an error. 
+
+Here is an example. You have a notification system. You send notifications to users about their account every time that a message comes in. But you don't want to have multiple notifications about this account; after all, the user *already* has a notification in queue. So 
+
+* `models.user.create({name:"johnsmith"},callback)` should **not** create a new user, and it **should** return an error
+* `models.notification.create({user:"123",account,"456"},callback)` should **not** create a new notification, but **without** returning an error
+
+In the latter case, the logic is, "I asked for a notification to exist for the user". Either creating a new one or failing because one exists is valid and should not return an error.
+
+How do we do that in booster? Simple:
+
+````JavaScript
+unique:[["user","account"]],
+uniqueerror:false
+````
+
+If `uniqueerror` is true, or `uniqueerror` is not set, it will have the usual, default, "send an error" behaviour. But if it is set to `false` explicitly, it will *not* `create()` the new object (or `patch()` or `update()`), but also will *not* return an error. Sweet!
 
 
 

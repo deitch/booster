@@ -97,6 +97,10 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"1",firstname:"sam",lastname:"smith"},
 		{id:"2",firstname:"jill",lastname:"jones"}
 	],
+	uniquesuppress: [
+		{id:"1",firstname:"sam",lastname:"smith"},
+		{id:"2",firstname:"jill",lastname:"jones"}
+	],
 	doubleunique: [
 		{id:"1",firstname:"sam",lastname:"smith"},
 		{id:"2",firstname:"jill",lastname:"jones"}

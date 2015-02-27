@@ -26,6 +26,7 @@ describe('models',function () {
 		booster.resource('singleunique'); // one unique field
 		booster.resource('doubleunique'); // two independent unique field
 		booster.resource('combounique'); // two independent unique field
+		booster.resource('uniquesuppress'); // unique field, but suppress the error
 		booster.resource('integers'); // fields with integers
 		booster.resource('defaultfilter'); // field with a default filter
 		booster.resource('withdefault'); // field with a default for blank
@@ -842,6 +843,47 @@ describe('models',function () {
 				});
 	    });
 		});
+	  describe('unique field with error suppression', function(){
+			var orig = db.data("uniquesuppress",{id:"1"})[0];
+	    it('should not create with conflict but no error', function(done){
+				async.series([
+					function (cb) {
+						r.post('/uniquesuppress').type('json').send({firstname:"steve",lastname:"smith"}).expect(201,cb);
+					},
+					function (cb) {
+						r.get('/uniquesuppress').query({firstname:"steve"}).expect(200,[],cb);
+					}
+				],done);
+	    });
+			it('should not update with conflict but no error', function(done){
+				async.series([
+					function (cb) {
+						r.put('/uniquesuppress/1').type('json').send({firstname:"samantha",lastname:"jones"}).expect(200,done);
+					},
+					function (cb) {
+						r.get('/uniquesuppress/1').end(function (err,res) {
+							res.status.should.eql(200);
+							res.body.firstname.should.eql(orig.firstname);
+							res.body.lastname.should.eql(orig.lastname);
+						});
+					}
+				],done);
+			});
+			it('should not patch with conflict but no error', function(done){
+				async.series([
+					function (cb) {
+			      r.patch('/uniquesuppress/1').type('json').send({lastname:"jones"}).expect(200,done);
+					},
+					function (cb) {
+						r.get('/uniquesuppress/1').end(function (err,res) {
+							res.status.should.eql(200);
+							res.body.firstname.should.eql(orig.firstname);
+							res.body.lastname.should.eql(orig.lastname);
+						});
+					}
+				],done);
+			});
+	  });
 	});
 	describe('search by integer', function(){
 		var cutoff = 15, lt = [], gt = [];
