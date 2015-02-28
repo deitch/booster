@@ -1448,9 +1448,11 @@ Then the response from the validation function will be `{valid:true,value:"assde
     {id:"10",name:"john",password:"assde232shwsww1323"}
 
 ##### Parent Validation
-In addition to the usual validations - predefined and function - you have the option to create "parent" validations. 
+In addition to the usual validations - predefined and function - you have the option to create "parent" validations. A field in one item is only allowed a certain value if the field in another related item matches it.
 
-You have a model called `category` and another called `article`. Each `article` belongs to one, and just one, category (for the database-minded, N:1 relationship. In addition, both articles and categories have a field called `status`, which can be set to "published" or "draft". Well, then, your models look like this:
+This is best explained with an example.
+
+You have a model called `category` and another called `article`. Each `article` belongs to one, and just one, category (for the database-minded, N:1 relationship). In addition, both articles and categories have a field called `status`, which can be set to "published" or "draft". Well, then, your models look like this:
 
 
 ````JavaScript
@@ -1459,7 +1461,7 @@ You have a model called `category` and another called `article`. Each `article` 
 	fields: {
 		id: {required:true},
 		name: {required:true, validation:"alphanumeric"},
-		status: {validation:"set:draft,published"}
+		status: {validation:"list:draft,published"}
 	}
 }
 
@@ -1469,7 +1471,7 @@ You have a model called `category` and another called `article`. Each `article` 
 		id: {required:true},
 		category: {required:true}, // which category this article is part of
 		name: {required:true, validation:"alphanumeric"},
-		status: {validation:"set:draft,published"}
+		status: {validation:"list:draft,published"}
 	}
 }
 ````
@@ -1488,7 +1490,7 @@ You know booster will help you do this, right? Sure you do! Just tell the `artic
 		category: {required:true}, // which category this article is part of
 		name: {required:true, validation:"alphanumeric"},
 		status: {validation:
-			{valid:"set:draft,published",parent:"category",check:"published"}
+			{valid:"list:draft,published",parent:"category",check:"published"}
 		}
 	}
 }
@@ -1506,15 +1508,78 @@ The properties of the `validation` object thus are:
 
 The `check` property deserves a little more explanation.
 
-* If it is not defined, *every* setting of the field will trigger a check that the parent field of the same name matches our proposed value
+* If it is not defined, the status in the child must *always* match the parent
 * If it is a string, only check if the set value of this field matches the string
 * If it is an array, only check if the set value matches one of the strings in the array
+* If it is an object, check the set value for a key in the object, and then check the parent for the value. See the explanation beoow.
 
 Here are some examples, assuming all are set for `status`:
 
 * `{parent:"category",check:"published"}` - if we set `status` to "published", check the parent; any other value, do not check
 * `{parent:"category",check:["published","foo"]}` - if we set `status` to "published" or "foo", check the parent; any other value do not check
 * `{parent:"category"}` - check the parent for *any* value change for `status`
+
+
+###### Complex Parent Validation
+In parent validation, we showed how you could require the `status` of `article` should always match the `status` of the parent `category`:
+
+````JavaScript
+		status: {validation:
+			{valid:"list:draft,published",parent:"category"}
+		}
+````
+
+You could also set it to check only it is certain values, example "published":
+
+````JavaScript
+		status: {validation:
+			{valid:"list:draft,published",parent:"category",check:"published"}
+		}
+````
+
+Or, for that matter, it must match for one of a few values:
+
+````JavaScript
+		status: {validation:
+			{valid:"list:draft,published",parent:"category",check:["published","limited"]}
+		}
+````
+
+However, what if you don't necessarily want to restrict the `status` to an exact *match* of the parent, but rather within a limited set? For example, what if you want:
+
+* for the `article` to be `status` "draft", the parent can be anything at all
+* for the `article` to be `status` "published", the parent must be "published" or "open"
+* for the `article` to be `status` "open", the parent must be "published" or "open"
+* for the `article` to be `status` "closed", the parent must be "closed"
+
+Rather than *matching* the parent's value, you want to restrict the child's value based on the parent's. In that case, instead of setting `check` as a string or array of strings, set it as an object. 
+
+* Each key in the object is the value of the child that triggers the check
+* Each value in the object is a string for the parent that is required, or an array of strings
+
+Our example then would look like this:
+
+````JavaScript
+		status: {validation:
+			{valid:"list:draft,published,open,closed,foo",parent:"category",check:{
+				published:["published","open"],
+				open:["published","open"],
+				closed:"closed",
+				foo:"*"
+			}}
+		}
+````
+
+* The `valid` part of `validation` limits the potential values to "draft","published","open","closed"
+* The `parent` says, "check my value against the `category`"
+* The `check` says:
+* * If my value is "published", then the `category` status must be "published" or "open"
+* * If my value is "open", then the `category` status must be "published" or "open"
+* * If my value is "closed", then the `category` status must be "closed"
+* * If my value is "foo", then do not check (this is the same as not putting it in)
+* * If my value is anything else, then do not check. 
+
+Pretty cool, eh?
 
 
 #### Visibility

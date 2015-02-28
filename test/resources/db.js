@@ -150,8 +150,8 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"2",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",validateparent:"20"}
 	],
 	validateparent: [
-		{id:"10",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft"},
-		{id:"20",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published"}
+		{id:"10",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",statuscheckcomplex:"draft"},
+		{id:"20",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published",statuscheckcomplex:"published"}
 	],
 	deleteparentallow: [
 		{id:"100",text:"I am with children"},

@@ -628,6 +628,90 @@ describe('models',function () {
 				r.patch('/validatetoparent/2').send({statuschecklist:"foo"}).expect(200,done);
 			});
 		});
+		describe('with complex restriction', function(){
+			describe('with star', function(done){
+				it('should accept any create', function(){
+					r.post('/validatetoparent').send({statuscheckcomplex:"draft",validateparent:"10"}).expect(201,done);
+				});
+				it('should accept any put', function(done){
+					r.put('/validatetoparent/1').send({statuscheckcomplex:"draft",validateparent:"10"}).expect(200,done);
+				});
+				it('should accept any patch', function(done){
+					r.patch('/validatetoparent/1').send({statuscheckcomplex:"draft"}).expect(200,done);
+				});
+			});
+			describe('with no field', function(){
+				it('should accept any create', function(done){
+					r.post('/validatetoparent').send({statuscheckcomplex:"open",validateparent:"10"}).expect(201,done);
+				});
+				it('should accept any put', function(done){
+					r.put('/validatetoparent/1').send({statuscheckcomplex:"open",validateparent:"10"}).expect(200,done);
+				});
+				it('should accept any patch', function(done){
+					r.patch('/validatetoparent/1').send({statuscheckcomplex:"open"}).expect(200,done);
+				});
+			});
+			describe('with single string', function(){
+				describe('unmatched', function(){
+					beforeEach(function(done){
+						r.patch('/validateparent/10').send({statuscheckcomplex:"draft"}).expect(200,done);
+					});
+					it('should reject unmatched create', function(done){
+						r.post('/validatetoparent').send({statuscheckcomplex:"closed",validateparent:"10"}).expect(400,{statuscheckcomplex:"invalidparent"},done);
+					});
+					it('should reject unmatched put', function(done){
+						r.put('/validatetoparent/1').send({statuscheckcomplex:"closed",validateparent:"10"}).expect(400,{statuscheckcomplex:"invalidparent"},done);
+					});
+					it('should reject unmatched patch', function(done){
+						r.patch('/validatetoparent/1').send({statuscheckcomplex:"closed"}).expect(400,{statuscheckcomplex:"invalidparent"},done);
+					});
+				});
+				describe('matched', function(){
+					beforeEach(function(done){
+						r.patch('/validateparent/10').send({statuscheckcomplex:"open"}).expect(200,done);
+					});
+					it('should accept matched create', function(done){
+						r.post('/validatetoparent').send({statuscheckcomplex:"closed",validateparent:"10"}).expect(201,done);
+					});
+					it('should accept matched put', function(done){
+						r.put('/validatetoparent/1').send({statuscheckcomplex:"closed",validateparent:"10"}).expect(200,done);
+					});
+					it('should accept matched patch', function(done){
+						r.post('/validatetoparent').send({statuscheckcomplex:"closed",validateparent:"10"}).expect(201,done);
+					});
+				});
+			});
+			describe('with array', function(){
+				describe('unmatched', function(){
+					beforeEach(function(done){
+						r.patch('/validateparent/10').send({statuscheckcomplex:"draft"}).expect(200,done);
+					});
+					it('should reject unmatched create', function(done){
+						r.post('/validatetoparent').send({statuscheckcomplex:"published",validateparent:"10"}).expect(400,{statuscheckcomplex:"invalidparent"},done);
+					});
+					it('should reject unmatched put', function(done){
+						r.put('/validatetoparent/1').send({statuscheckcomplex:"published",validateparent:"10"}).expect(400,{statuscheckcomplex:"invalidparent"},done);
+					});
+					it('should reject unmatched patch', function(done){
+						r.patch('/validatetoparent/1').send({statuscheckcomplex:"published"}).expect(400,{statuscheckcomplex:"invalidparent"},done);
+					});
+				});
+				describe('matched', function(){
+					beforeEach(function(done){
+						r.patch('/validateparent/10').send({statuscheckcomplex:"open"}).expect(200,done);
+					});
+					it('should accept matched create', function(done){
+						r.post('/validatetoparent').send({statuscheckcomplex:"published",validateparent:"10"}).expect(201,done);
+					});
+					it('should accept matched put', function(done){
+						r.put('/validatetoparent/1').send({statuscheckcomplex:"published",validateparent:"10"}).expect(200,done);
+					});
+					it('should accept matched patch', function(done){
+						r.post('/validatetoparent').send({statuscheckcomplex:"published",validateparent:"10"}).expect(201,done);
+					});
+				});
+			});
+		});
 	});
 	describe('delete policies', function(){
 		describe('policy', function(){

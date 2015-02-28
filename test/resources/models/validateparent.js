@@ -5,6 +5,7 @@ module.exports = {
 		status: {},
 		statuscheck: {},
 		statuscheckcomma: {},
-		statuschecklist: {}
+		statuschecklist: {},
+		statuscheckcomplex: {}
 	}
 };
