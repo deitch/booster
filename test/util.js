@@ -29,6 +29,9 @@ describe('util',function () {
 		it('should return null for object without b.embed', function(){
 			should(util.extractEmbed({a:"25"})).eql(null);
 		});
+		it('should return object for embedded object', function(){
+			util.extractEmbed({'$b.embed':{a:0}}).should.eql({a:0});
+		});
 		it('should return correct for single embed', function(){
 			util.extractEmbed({'$b.embed':'a'}).should.eql({a:{}});
 		});
