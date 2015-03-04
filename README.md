@@ -34,6 +34,9 @@ Here are just *some* of the key features:
 * `GET` (index) can send list or object
 * Custom base paths (like `/api`)
 * Paths to resource properties
+* Define relations between resources - 1:1, 1:N, N:1, N:N
+* Automatic validation of field values for relations
+* Automatic retrieval of related resources
 * Pre-processing filters across all actions or by action - at the controller level and at the model level
 * Post-processing filters across all actions or by action - at the controller level and at the model level
 * Automatic list/update of related resources
@@ -1042,16 +1045,16 @@ Models are just standard representations of back-end data from the database. Lik
 
 So what is in a model? Actually, a model is an automatically generated JavaScript object handler. It is driven by a config file in which you tell it which you tell booster, for this particular model, how to manage data: name in the database, id field, validations, what should be unique, etc.
 
-* name: what the name of this model should be in your database. Optional. Defaults to the name of the file, which is the name of the `resource` you created in `booster.resource('name')`.
-* fields: what fields this model should have, and what validations exist around those fields
-* unique: what unique fields need to exist for this model
-* uniqueerror: whether or not to return an error for a unique conflict
-* id: what the ID field is. We need this so that we can use "unique" comparisons and other services. Optional. Defaults to "id".
-* presave: a function to be executed immediately prior to saving a model via update or create. Optional.
-* extend: an object, with functions that will extend the model. Optional. See below.
-* delete: rules for creating, preventing or enforcing cascading deletes. Optional. See below.
-* filter: filters before performing a model action
-* post: actions to take after the model
+* `name`: what the name of this model should be in your database. Optional. Defaults to the name of the file, which is the name of the `resource` you created in `booster.resource('name')`.
+* `fields`: what fields this model should have, and what validations exist around those fields
+* `unique`: what unique fields need to exist for this model
+* `uniqueerror`: whether or not to return an error for a unique conflict
+* `id`: what the ID field is. We need this so that we can use "unique" comparisons and other services. Optional. Defaults to "id".
+* `presave`: a function to be executed immediately prior to saving a model via update or create. Optional.
+* `extend`: an object, with functions that will extend the model. Optional. See below.
+* `delete`: rules for creating, preventing or enforcing cascading deletes. Optional. See below.
+* `filter`: filters before performing a model action
+* `post`: actions to take after the model
 
 An actual model instance is just a plain old javascript object (POJSO). The data returned from the database to a controller should be a POJSO, as should the data sent back.
 
@@ -1063,17 +1066,18 @@ It is used, however, as the value of the `table` passed to all the database call
 #### fields
 The `fields` is a list of all of the required fields and properties that are used for this model. It includes the following:
 
-* required: boolean, if the field is required. Ignored for PUT updates. Default `false`
-* createblank: boolean, if this field is optional during creation. ignored if `required === false`. Default `false`
-* mutable: boolean, if the field can be changed by a client request. Default `true`
-* visible: this field is one of: public (visible to all), private (visible only for explicit private viewers), secret (never sent off the server)
-* validation: validations to which to subject this field
-* type: if this field should be a particular type. If it is, then when doing a `find()`, it will cast it to the appropriate type, if possible.
-* default: if this field is not specified, a default value.
-* filter: if filtering should be done on this field in the case of `index()`. It should be an object with the following properties:
-   * default: what filter value should be applied to this field, if none is given
-   * clear: what value if applied should indicate no filter
-* cascade: if this field is changed, cascade the change down to dependent model items. See details below.
+* `required`: boolean, if the field is required. Ignored for PUT updates. Default `false`
+* `createblank`: boolean, if this field is optional during creation. ignored if `required === false`. Default `false`
+* `mutable`: boolean, if the field can be changed by a client request. Default `true`
+* `visible`: this field is one of: public (visible to all), private (visible only for explicit private viewers), secret (never sent off the server)
+* `validation`: validations to which to subject this field
+* `association`: how this field determines a relationship between this resource and another resource
+* `type`: if this field should be a particular type. If it is, then when doing a `find()`, it will cast it to the appropriate type, if possible.
+* `default`: if this field is not specified, a default value.
+* `filter`: if filtering should be done on this field in the case of `index()`. It should be an object with the following properties:
+   * `default`: what filter value should be applied to this field, if none is given
+   * `clear`: what value if applied should indicate no filter
+* `cascade`: if this field is changed, cascade the change down to dependent model items. See details below.
 
 
 
@@ -1137,12 +1141,14 @@ What if you have an item that has dependent items. When you make a change to a f
 
 I have two models, `post` and `comment`. They look like this:
 
-    post: {
+		post: {
 			id: {required:true,createoptional:true},
 			content: {required:true},
 			status: {required:true,default:"draft",validation:"list:draft,published"}
 		}
-		
+
+And the comment:
+
 		comment: {
 			id: {required:true,createoptional:true},
 			post: {required:true},
@@ -1797,6 +1803,164 @@ The `policy` determines *what* `booster` does when it finds matching children. H
 * `forcece`: if any children are found, the `DELETE` will return a `409`, just like `prevent`. However, if the query parameter `force` is set to `true`, i.e. `?force=true`, it will delete the resource and leave the children alone.
 * `cascade`: if any children are found, the `DELETE` will delete all of the children as well, and onwards to further descendents based on their policies.
 * `allow`: Do not bother checking the children, just delete the resource. This is the same as having no `delete` property.
+
+
+#### Model Associations or Relationships
+
+Often (actually, in just about every real application we have ever seen), resources (or models) relate one to another.
+
+For example, if you have a blog with categories, posts and comments, then you have something like this:
+
+* Each category has_many posts
+* Each post belongs_to one category
+* Each post has_many comments
+* Each comment belongs_to one post
+
+What does all of this mean? Well, you will want a few features:
+
+1. Validation: When I save a comment with a particular value for a field, e.g. `post=1`, I want to know that the post `1` actually exists and is a valid post.
+2. Retrieval: When I retrieve an article, e.g. `GET /posts/1`, I might want to be able to say, "get me `post` 1 along with all of its comments embedded". The result would be `{name:"A Post",id:"1",Text:"Lorem ipsum",comments:[{id:"1",commenter:"John",text:"A comment",post:"1"},{id:"2",commenter:"Jill",text:"Another comment",post:"1"}]}`
+3. Reverse retrieval: Conversely, if I get just a comment, e.g. `GET /comments/1`, I might want to retrieve the article with it. The result would be `{id:"1",commenter:"John",text:"A comment",post:{name:"A Post",id:"1",Text:"Lorem ipsum"}}`
+4. Controlled embedding: Whether retrieving comments with the post, or post with the comments, I would want to be able to control when it embeds the related item, and when it does not.
+
+Booster provides a simple way for you to do all of these. For it to work, there are three steps, *three being the number to which you shall count*:
+
+1. Define the relationships on both sides, i.e. in both models. 
+2. Indicate that you wish to embed in the model calls, if you are calling them directly
+3. Indicate that you wish to embed in the HTTP API call, if you are calling from the Web
+
+##### Define the Relationship
+
+First, you need to define the relationship between the models. You do so by using the `association` flag on the field that connects one to the other. We borrowed some of the language of Rails to define relationships, since lots of people like them and are productive with them.
+
+Continuing our example above of `category` and a `post`:
+
+````JavaScript
+// category
+{
+	fields: {
+		posts: {association:{model:"post",type:"has_many"}}
+	}
+}
+
+// post
+{
+	fields: {
+		category: {association:{model:"category",type:"belongs_to"}}
+	}
+}
+````
+
+The above means
+
+* `category` is connected to posts with the `category.posts` field
+* `post` is connected to `category` with the `post.category` field
+
+You **always** need to define the relationship on both sides, but the fields are not necessarily *marked* on both sides. In the above example, only `post` will have an actual field defined in the database `category`, which stores the ID of the `category` to which it is connected. `category` does not have any such field; `posts` is used only to retrieve related items.
+
+Since the relationships is defined on the *field*, you can, of course, have as many relationships as you want, including self-referencing relationships (where a `post` refers to another `post`)
+
+There are four relationship or association types:
+
+* `has_one`: This resource has a 1:1 with another resource. This field is **not** stored in the database.
+* `has_many`: This resource has a 1:N with another resource. This field is **not** stored in the database.
+* `belongs_to`: This resource has a 1:1 with another resource. This field **is** stored in the database.
+* `many_to_many`: This resource has an N:N with another resource. This field is **not** stored in the database.
+
+The combinations possible are:
+
+* 1:1: One side has `has_one`, the other side has `belongs_to`. The relationship is stored on the `belongs_to` side.
+* 1:N: One side has `has_many`, the other side has `belongs_to`. The relationship is stored on the `has_to` side.
+* N:N: Both sides have `many_to_many`. Neither side stores the relationship. Instead, a "join table" stores the relationship.
+
+###### Fields of association
+What are the possible property of the `association` object?
+
+* `model`: What resource is the other side of this relationship? Put in other terms, what does this point to? In our above example, on the `post` model, the value of `category` is the ID of an instance of the resource `category`. If the name of the related resource and field are identical, you can leave out the `model` property.
+* `type`: What type of relationship is this? One of `has_one`, `has_many`, `belongs_to`, `many_to_many`.
+* `through`: What is the join resource for a many-to-many relationship? It must be a normal resource, defined either via `booster.resource()` or `booster.model()`
+
+Note that when retrieving a model with a field whose association is `belongs_to`, it will **always** return a value, since it stores it in the database. When retrieving a model with a field whose association is anything else, it will not necessarily return a value, since it is only an indicator of relationship.
+
+##### Request an embedding from the model
+
+When you get a resource that has a relationship, it normally just returns the plain resource. To use our above example
+
+````JavaScript
+models.post.get('125',function(err,data){
+	// will return
+	// {title:"My Post",text:"Lorem Ipsum",category:"25"}
+});
+````
+
+Note that it returned the data exactly as it appears in the database, category is set to `"25"`. However, if you want it to actually retrieve the `category` item and embed it in the returned value, you can request it:
+
+````JavaScript
+models.post.get('125',{"$b.embed":"category"},function(err,data){
+	// will return
+	// {title:"My Post",text:"Lorem Ipsum",category:{id:"25",name:"Important Category"}}
+});
+````
+
+By inserting `{embed:"category"}`, you are telling the model's `.get()` function, "if field `category` is a relationship, retrieve its items and embed them."
+
+You can do it the other way as well:
+
+````JavaScript
+models.category.get('25',{"$b.embed":"posts"},function(err,data){
+	// will return
+	// {id:"25",name:"Important Category",posts:[{id:"125",title:"First Post"},{id:"126",title:"Different Post"}]}
+});
+````
+
+You also can request a deeper embed. Let's look at our category-post-comment structure again. Each category has many posts. Each post has many comments. We can retrieve the category with the posts (we just did that above), and in turn retrieve all of the comments for each post:
+
+````JavaScript
+models.category.get('25',{"$b.embed":["posts","posts.comments"]},function(err,data){
+	// will return
+	// {id:"25",name:"Important Category",posts:[
+		{id:"125",title:"First Post",comments:[{id:"201",content:"Snarky comment"},{id:"202",content:"Praising comment"}]},
+		{id:"126",title:"Different Post",comments:[]}
+	]}
+});
+````
+
+The `embed` property can be an array or a comma-separated string. Both of the following are equivalent:
+
+* `{"$b.embed":["posts","foo"]}`
+* `{"$b.embed":"posts,foo"}`
+
+
+You can use a parameter object with the `embed` property in every model call that returns data: `get`, `find`, `patch`, `update`. because `create` and `destroy` do not return objects - `create` returns the ID, while `destroy` does not return anything - it has no meaning there.
+
+##### Request an embedding from the http API
+
+Of course, you are not always dealing in the guts of controllers and models! The whole **purpose** of booster is to simplify your creation of REST APIs. How do you request an embedding from HTTP? 
+
+Put in other terms, how do you change the response of `GET /category/25` from:
+
+````JavaScript
+// simple data
+{id:"25",name:"Important Category"}
+````
+
+into:
+
+````JavaScript
+// related posts embedded?
+{id:"25",name:"Important Category",posts:[{id:"125",title:"First Post"},{id:"126",title:"Different Post"}]}
+````
+
+Simple! Just add the embed as the query parameter `$b.embed`:
+
+````JavaScript
+// GET /category/25?$b.embed=posts
+{id:"25",name:"Important Category",posts:[{id:"125",title:"First Post"},{id:"126",title:"Different Post"}]}
+````
+
+The rules for the value of `$b.embed` in the controller are identical to those for using the `$b.embed` parameter in the `model.get()` request.
+
+Pretty neat, huh?
 
 
 #### Model Filters

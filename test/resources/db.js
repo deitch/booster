@@ -197,6 +197,24 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 	],
 	deletegrandchild: [
 		{id:"50",text:"I am a grandchild",deletechildprevent:"2",deletechildforce:"3",deletechildallow:"4",deletechildcascade:"5"}
+	],
+	assocparent:[
+		{id:"650",name:"A parent"}
+	],
+	assoconechild:[
+		{id:"660",name:"One child",assoc:"650",assoc_other:"700",assocmm:"680"}
+	],
+	assocmanychild:[
+		{id:"670",name:"Many child",assoc:"650",assoc_other:"700"}
+	],
+	assocmmchild:[
+		{id:"680",name:"M2M child"}
+	],
+	assocjoin:[
+		{id:"690",side1:"650",side2:"680"}
+	],
+	assocother:[
+		{id:"700",name:"The Other",assoc:"650"}
 	]
 }, IDFIELDS = {
 	different: "key"
