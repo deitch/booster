@@ -16,6 +16,22 @@ describe('util',function () {
 			util.removeDollarB(_.extend({},clean,{'$b.embed':'2,3','$b.fooo':56})).should.eql(clean);
 		});
 	});
+	describe('removeAssociations', function(){
+		var input = {a:25,b:"30",hasone:"1",hasmany:"2",belongsto:"3",manytomany:"4"};
+		it('should return the original when no asociation fields', function(){
+			var fields = {};
+			util.removeAssociations(input,fields).should.eql(input);
+		});
+		it('should return the original without association fields', function(){
+			var fields = {
+				hasone:{association:{type:'has_one'}},
+				hasmany:{association:{type:'has_many'}},
+				manytomany:{association:{type:'many_to_many'}},
+				belongsto:{association:{type:'belongs_to'}}
+			};
+			util.removeAssociations(input,fields).should.eql(_.omit(input,"hasone","hasmany","manytomany"));
+		});
+	});
 	describe('extractEmbed', function(){
 		it('should return null for null', function(){
 			should(util.extractEmbed(null)).eql(null);
