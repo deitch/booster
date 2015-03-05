@@ -32,6 +32,38 @@ describe('util',function () {
 			util.removeAssociations(input,fields).should.eql(_.omit(input,"hasone","hasmany","manytomany"));
 		});
 	});
+	describe('removeUnique', function(){
+		describe('without suppress', function(){
+			it('should return null for null object', function(){
+				should(util.removeUnique(null)).eql(null);
+			});
+			it('should return null for empty errors object', function(){
+				should(util.removeUnique({})).eql(null);
+			});
+			it('should return original for errors object with just unique errors', function(){
+				var orig = {a:"notunique",b:"notunique"};
+				should(util.removeUnique(orig)).eql(orig);
+			});
+			it('should return original for errors object with all kinds of errors', function(){
+				var orig = {a:"notunique",b:"notunique",c:"a",d:10};
+				should(util.removeUnique(orig)).eql(orig);
+			});
+		});
+		describe('with suppress', function(){
+			it('should return null for null object', function(){
+				should(util.removeUnique(null,true)).eql(null);
+			});
+			it('should return null for empty errors object', function(){
+				should(util.removeUnique({},true)).eql(null);
+			});
+			it('should return null for errors object with just unique errors', function(){
+				should(util.removeUnique({a:"notunique",b:"notunique"},true)).eql(null);
+			});
+			it('should return hash without unique errors', function(){
+				should(util.removeUnique({a:"notunique",b:"notunique",c:"a",d:10},true)).eql({c:"a",d:10});
+			});
+		});
+	});
 	describe('extractEmbed', function(){
 		it('should return null for null', function(){
 			should(util.extractEmbed(null)).eql(null);
