@@ -202,10 +202,12 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"650",name:"A parent"}
 	],
 	assoconechild:[
-		{id:"660",name:"One child",assoc:"650",assoc_other:"700",assocmm:"680"}
+		{id:"660",name:"One child",assoc:"650",assoc_other:"700",assocmm:"680"},
+		{id:"661",name:"Disconnected child"}
 	],
 	assocmanychild:[
-		{id:"670",name:"Many child",assoc:"650",assoc_other:"700"}
+		{id:"670",name:"Many child",assoc:"650",assoc_other:"700"},
+		{id:"671",name:"Disconnected child"}
 	],
 	assocmmchild:[
 		{id:"680",name:"M2M child"}

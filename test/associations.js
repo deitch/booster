@@ -34,6 +34,12 @@ describe('associations',function () {
 		items[name] = db.data("assoc"+name,0);
 		assoc[name] = items[name].id;
 	});
+	items.oneorphan = db.data("assoconechild",1);
+	assoc.oneorphan = items.oneorphan.id;
+
+	items.manyorphan = db.data("assocmanychild",1);
+	assoc.manyorphan = items.manyorphan.id;
+	
 	describe('one-to-one', function(){
 		describe('belongs_to side', function(){
 			var search = {name:items.onechild.name};
@@ -125,6 +131,12 @@ describe('associations',function () {
 							should(err).not.be.ok;
 							res.assoc.should.eql(assoc.parent);
 							done();
+						});
+					});
+					it('should ignore empty value', function(){
+						m.get(assoc.oneorphan,{"$b.embed":"assoc"},function (err,res) {
+							should(err).not.be.ok;
+							should(res.assoc).not.be.ok;
 						});
 					});
 					it('should populate single with embed', function(done){
@@ -653,6 +665,12 @@ describe('associations',function () {
 							should(err).not.be.ok;
 							res.assoc.should.eql(assoc.parent);
 							done();
+						});
+					});
+					it('should ignore empty value', function(){
+						m.get(assoc.manyorphan,{"$b.embed":"assoc"},function (err,res) {
+							should(err).not.be.ok;
+							should(res.assoc).not.be.ok;
 						});
 					});
 					it('should populate single with embed', function(done){
