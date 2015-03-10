@@ -160,6 +160,10 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"10",text:"I am with children"},
 		{id:"20",text:"I am without children"}
 	],
+	deleteparentpreventfield: [
+		{id:"10",text:"I am with children"},
+		{id:"20",text:"I am without children"}
+	],
 	deleteparentforce: [
 		{id:"200",text:"I am without children"},
 		{id:"210",text:"I am with children"}

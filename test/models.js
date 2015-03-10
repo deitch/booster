@@ -39,6 +39,7 @@ describe('models',function () {
 		booster.resource('validateparent'); // parent for validation
 		booster.resource('deleteparentallow'); // parent for delete policies
 		booster.resource('deleteparentprevent'); // parent for delete policies
+		booster.resource('deleteparentpreventfield'); // parent for delete policies with different named field
 		booster.resource('deleteparentforce'); // parent for delete policies
 		booster.resource('deleteparentcascade'); // parent for delete policies
 		booster.resource('deleteparentcascade_childallow'); // parent for delete policies
@@ -721,14 +722,27 @@ describe('models',function () {
 				});
 			});
 			describe('prevent', function(){
-				it('should delete without children', function(done){
-					r.del('/deleteparentprevent/20').expect(204,done);
+				describe('without field', function(){
+					it('should delete without children', function(done){
+						r.del('/deleteparentprevent/20').expect(204,done);
+					});
+					it('should prevent delete if has children', function(done){
+						r.del('/deleteparentprevent/10').expect(409,{delete:"children"},done);
+					});
+					it('should prevent delete even if force', function(done){
+						r.del('/deleteparentprevent/10').query({force:true}).expect(409,{delete:"children"},done);
+					});
 				});
-				it('should prevent delete if has children', function(done){
-					r.del('/deleteparentprevent/10').expect(409,{delete:"children"},done);
-				});
-				it('should prevent delete even if force', function(done){
-					r.del('/deleteparentprevent/10').query({force:true}).expect(409,{delete:"children"},done);
+				describe('with field', function(){
+					it('should delete without children', function(done){
+						r.del('/deleteparentpreventfield/20').expect(204,done);
+					});
+					it('should prevent delete if has children', function(done){
+						r.del('/deleteparentpreventfield/10').expect(409,{delete:"children"},done);
+					});
+					it('should prevent delete even if force', function(done){
+						r.del('/deleteparentpreventfield/10').query({force:true}).expect(409,{delete:"children"},done);
+					});
 				});
 			});
 			describe('force', function(){
