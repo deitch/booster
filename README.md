@@ -144,6 +144,7 @@ And what exactly goes in that config, anyways?
 * `param`: parameters you want to make available to controller functions. Optional. Default is `{}`.
 * `db`: a database object. Required.
 * `app`: your express app object (you really should have one of these!). Required.
+* `embed`: whether or not to enable global embedding via HTTP API. See below.
 
 
 ### REST Resources
@@ -1951,7 +1952,7 @@ into:
 {id:"25",name:"Important Category",posts:[{id:"125",title:"First Post"},{id:"126",title:"Different Post"}]}
 ````
 
-Simple! Just add the embed as the query parameter `$b.embed`:
+Simple! Just enable HTTP embedding (see the next section), and add the embed as the query parameter `$b.embed`:
 
 ````JavaScript
 // GET /category/25?$b.embed=posts
@@ -1961,6 +1962,50 @@ Simple! Just add the embed as the query parameter `$b.embed`:
 The rules for the value of `$b.embed` in the controller are identical to those for using the `$b.embed` parameter in the `model.get()` request.
 
 Pretty neat, huh?
+
+##### But think about security!
+
+One minor little caveat. If we allow any `$b.embed` from anywhere via the HTTP API, well then someone could get something they shouldn't.
+
+For example, let's say you have `group` and `account`. Anyone can do `GET /groups/123`, but only admins can do `GET /groups/123/account`! So far so good. But what if someone did `GET /groups/123?$b.embed=account`. Oops. Someone with access to `GET /groups/123` (which is everyone) now has the ability to work around your security wall and do the equivalent of `GET /groups/123/account`!
+
+To prevent this scenario, you *must* enable HTTP API embedding for it to work. You *always* can do embedding from the model:
+
+````JavaScript
+models.groups.get('123',{'$b.embed':'account'},callback);
+````
+
+But via the HTTP API **requires** enabling or it just doesn't work.
+
+How do you enable it? At one of several levels. Details below.
+
+1. Global: You can configure booster globally, so all `$b.embed` will work. This is wide open, but you may be OK with that.
+2. Resource: You can configure embedding on each resource, determining if it should allow all embedding when requested.
+3. Fields: You can enable a particular field to be embedded. 
+
+The most permissive will always work. By default, nothing is enabled. If you enable globally, no per-controller configurations matter. If you enable all embedding of controller fields, then no embedding of self matters.
+
+###### Global
+To enable all embedding globally, you just need to indicate it when you call `booster.init()`.
+
+    booster.init({embed:true});
+
+Do that, and all HTTP embeds will work.
+
+###### Resource
+
+You can indicate on a resource that you wish to allow all embeds on it. This means that if I enable embedding on a resource, say `groups`, then any request to `groups` will allow any embedding on it. 
+
+You enable all embedding on a resource by adding a property to the configuration declaration:
+
+    booster.resource('group',{embed:true})
+		
+The above means, "let anything be embedded". So I can do `GET /groups/123?$b.embed=foo,bar,members` and all would embed (if those fields exist, of course).
+
+The `embed` parameter has several optional values:
+
+* `true`: embed everything, as in the above example.
+* array: if an array, then allow to request embedding those fields. For example, `embed:['foo','bar']` means, "allow them to embed foo and bar"
 
 
 #### Model Filters
