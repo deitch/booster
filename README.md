@@ -2063,7 +2063,7 @@ The filter functions have the following signatures.
 * `create`: `function(model,models,callback)` where `model` is the JavaScript object that will be saved
 * `update`: `function(key,model,models,callback)` where `key` is the unique ID of the item to be saved, and `model` is the new JavaScript object to replace the existing one
 * `patch`: `function(key,model,models,callback)` where `key` is the unique ID of the item to be saved, and `model` is the a JavaScript object with the properties to override in the existing one
-* `destroy`: `function(key,cmodels,allback)` where `key` is the unique ID of the item to be destroyed
+* `destroy`: `function(key,models,allback)` where `key` is the unique ID of the item to be destroyed
 
 When you are done, just call `callback()`. If you do not want it to proceed, call the `callback(err)`, where `err` is the error we want to return. In most cases, the controller will just return a `400` with the error as the body of the response.
 
@@ -2125,6 +2125,43 @@ module.exports = {
 	}
 }
 ````
+
+##### Replace DELETE
+
+In some models, you want to be able to call DELETE, e.g. `DELETE /users/123`, but not have it actually be deleted. A classic case is, well, users. Because so much depends upon it, you prefer to have the user `123` marked as deleted or archived somehow, but not actually have the underlying resource be destroyed.
+
+Filters give this to you as well! All you need is the `destroy` filter with a little twist.
+
+Since the last thing called before the actual `db.destroy()` is the filter `destroy()`, the obvious step is to create a filter that returns an error:
+
+````JavaScript
+filter: {
+	destroy: function(key,models,cb) {
+		models.users.patch(key,{cancelled:true},function(err,res) {
+			cb("NOT DELETED! HAHA!");
+		});
+	}
+}
+````
+
+This actually *will* work pretty well, with one minor problem. Because your filter called an error `"NOT DELETED! HAHA!"` (really, I recommend slightly less in-your-face error messages), it will return a `400` rather than a `204`. After all, it looks like an error, doesn't it? 
+
+In order to avoid this problem, but still not have it process the actual `db.destroy()`, you simply need to flag the model as "nodelete". This will cause the filter and post-processors and everything else to run, but not the actual delete.
+
+````JavaScript
+fields: {
+	name: {},
+	email: {} // etc. etc.
+},
+delete: {prevent:true},
+filter: {
+	destroy: function(key,models,cb) {
+		models.users.patch(key,{cancelled:true},cb);
+	}
+}
+````
+
+Note that this is the same `delete` property that we used for cascading delete, except that now you can also use it to prevent deleting itself!
 
 
 #### presave

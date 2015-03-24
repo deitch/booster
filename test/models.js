@@ -52,6 +52,7 @@ describe('models',function () {
 		booster.resource('deletechildallow'); // child for delete policies
 		booster.resource('deletechildcascade'); // child for delete policies
 		booster.resource('deletegrandchild'); // grandchild for delete policies
+		booster.model('deletepreventself'); // prevents deletion of self
 		booster.model('bfields'); // with $b fields that should skip validation but go to filters and post-processors
 		booster.model('only'); // just a model, no route
 		booster.model('modelfilter'); // just a model to test model filtering
@@ -1480,7 +1481,45 @@ describe('models',function () {
 			});
 		});
 	});
-
+	describe('delete prevent self', function(){
+		var orig = db.data("deletepreventself",0), id = orig.id;
+		it('should allow to call model.delete', function(done){
+			booster.models.deletepreventself.destroy(id,function (err,res) {
+				should(err).not.be.ok;
+				should(res).eql(id);
+				done();
+			});
+		});
+		it('should still have item afterwards', function(done){
+			async.waterfall([
+				function (cb) {
+					booster.models.deletepreventself.destroy(id,cb);
+				},
+				function (res,cb) {
+					booster.models.deletepreventself.get(id,cb);
+				},
+				function (res,cb) {
+					res.id.should.eql(orig.id);
+					res.text.should.eql(orig.text);
+					res.cancelled.should.be.true;
+					cb();
+				}
+			],done);
+		});
+		it('should call the filter', function(done){
+			booster.models.deletepreventself.destroy(id,function (err,res) {
+				booster.models.filtercalled.should.eql(id);
+				booster.models.filtercalled.should.eql(id);
+				done();
+			});
+		});
+		it('should call the post-processor', function(done){
+			booster.models.deletepreventself.destroy(id,function (err,res) {
+				booster.models.postcalled.should.eql(id);
+				done();
+			});
+		});
+	});
 	describe('filters', function(){
 		var id = '1';
 	  it('should allow through get without block', function(done){

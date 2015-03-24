@@ -153,6 +153,9 @@ var _ = require('lodash'), sjs = require('searchjs'), DATA = {
 		{id:"10",status:"draft",statuscheck:"draft",statuscheckcomma:"draft",statuschecklist:"draft",statuscheckcomplex:"draft"},
 		{id:"20",status:"published",statuscheck:"published",statuscheckcomma:"published",statuschecklist:"published",statuscheckcomplex:"published"}
 	],
+	deletepreventself: [
+		{id:"1000",text:"You cannot delete me"},
+	],
 	deleteparentallow: [
 		{id:"100",text:"I am with children"},
 	],
