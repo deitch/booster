@@ -889,6 +889,9 @@ describe('models',function () {
 	    it('should reject create with both fields conflict', function(done){
 	      r.post('/combounique').type('json').send({firstname:"sam",lastname:"smith"}).expect(409,{"firstname:lastname":"notunique"},done);
 	    });
+			it('should reject create with undefined and both fields conflict', function(done){
+				r.post('/combounique').type('json').send({firstname:"empty"}).expect(409,{"firstname:lastname":"notunique"},done);
+			});
 			it('should accept create with first field conflict', function(done){
 	      r.post('/combounique').type('json').send({firstname:"sam",lastname:"stevenson"}).expect(201,done);
 			});
@@ -900,6 +903,9 @@ describe('models',function () {
 			});
 	    it('should reject update with both fields conflict', function(done){
 	      r.put('/combounique/1').type('json').send({firstname:"jill",lastname:"jones"}).expect(409,{"firstname:lastname":"notunique"},done);
+	    });
+	    it('should reject update with undefined and both fields conflict', function(done){
+	      r.put('/combounique/1').type('json').send({firstname:"empty"}).expect(409,{"firstname:lastname":"notunique"},done);
 	    });
 			it('should accept update with first field conflict', function(done){
 	      r.put('/combounique/1').type('json').send({firstname:"jill",lastname:"stevenson"}).expect(200,done);
