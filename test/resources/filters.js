@@ -2,26 +2,26 @@
 
 module.exports = {
 	all: function (req,res,next) {
-		var p = req.param("system.all");
+		var p = req.query["system.all"];
 		if (p) {
-			res.send(403,p);
+			res.status(403).send(p);
 		} else {
 			next();
 		}
 	},
 	filter: {
 		all: function (req,res,next) {
-			var p = req.param("system.filter.all");
+			var p = req.query["system.filter.all"];
 			if (p) {
-				res.send(403,p);
+				res.status(403).send(p);
 			} else {
 				next();
 			}
 		},
 		show: function (req,res,next) {
-			var p = req.param("system.filter.show");
+			var p = req.query["system.filter.show"];
 			if (p) {
-				res.send(403,p);
+				res.status(403).send(p);
 			} else {
 				next();
 			}

@@ -2,7 +2,7 @@
 /*jslint node:true, debug:true, nomen:true */
 /*jshint unused:vars */
 var express = require('express'), request = require('supertest'), booster = require('../lib/booster'), 
-db = require('./resources/db');
+db = require('./resources/db'), bodyParser = require('body-parser');
 
 
 
@@ -11,8 +11,8 @@ describe('statics', function(){
 	beforeEach(function (done) {
 		db.reset();
 		app = this.app = express();
-		app.use(express.urlencoded());
-		app.use(express.json());
+		app.use(bodyParser.urlencoded({extended:true}));
+		app.use(bodyParser.json());
 		booster.init({db:db,app:app,models:__dirname+'/resources/models'});
 		booster.resource('extender');
 		r = request(app);

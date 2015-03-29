@@ -21,6 +21,9 @@ Done! You now have a REST service listening on the five standard REST paths for 
 
 Want customized controllers? Disable some paths? Nest resources? Model validations? Uniqueness? Read on!
 
+## Breaking Changes
+Version 2.0.0 and higher works **only** with expressjs version 4.x. Booster versions <2.0.0 will work **only** with express version <4.0.0 and booster versions >=2.0.0 will work **only** with express version >=4.0.0.
+
 ## Features
 Here are just *some* of the key features:
 

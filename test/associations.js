@@ -2,7 +2,7 @@
 /*jslint node:true, debug:true, nomen:true,expr:true */
 /*jshint unused:vars */
 var express = require('express'), _ = require('lodash'), request = require('supertest'), booster = require('../lib/booster'), 
-should = require('should'), async = require('async'), db = require('./resources/db');
+should = require('should'), async = require('async'), db = require('./resources/db'), bodyParser = require('body-parser');
 
 
 
@@ -27,8 +27,7 @@ describe('associations',function () {
 	describe('resource embed', function(){
 		before(function (done) {
 			app = this.app = express();
-			app.use(express.urlencoded());
-			app.use(express.json());
+			app.use(bodyParser.json());
 			booster.init({db:db,app:app,models:__dirname+'/resources/models'});
 			booster.resource('assocparent'); // association parent - has_one and has_many and many_to_many
 			booster.resource('assoconechild',{embed:true}); // association child - belongs_to the has_one
@@ -88,8 +87,8 @@ describe('associations',function () {
 	describe('all embed', function(){
 		before(function (done) {
 			app = this.app = express();
-			app.use(express.urlencoded());
-			app.use(express.json());
+			app.use(bodyParser.urlencoded({extended:true}));
+			app.use(bodyParser.json());
 			booster.init({db:db,app:app,models:__dirname+'/resources/models',embed:true});
 			booster.resource('assocparent'); // association parent - has_one and has_many and many_to_many
 			booster.resource('assoconechild'); // association child - belongs_to the has_one

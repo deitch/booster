@@ -6,21 +6,21 @@ module.exports = {
 	properties: {
 		groups: {
 			get: function(req,res,next) {
-				res.send(200,groups);
+				res.status(200).send(groups);
 			},
 			set: function(req,res,next) {
 				groups = req.body;
-				res.send(200);
+				res.status(200).end();
 			}
 		},
 		roles: {
 			get: function(req,res,next) {
-				res.send(roles);
+				res.status(200).send(roles);
 			}
 		},
 		strange: {
 			set: function(req,res,next) {
-				res.send(200);
+				res.status(200).end();
 			}
 		}		
 	}

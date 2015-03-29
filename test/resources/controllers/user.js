@@ -22,9 +22,9 @@ module.exports = {
 		var User = req.booster.models.user;
 		User.find({},function (err,data) {
 			if (err) {
-				res.send(400,err);
+				res.status(400).send(err);
 			} else {
-				res.send(200,filter(User,data,req.param("visibility")));
+				res.send(filter(User,data,req.param("visibility")));
 			}
 		});
 	},
@@ -32,9 +32,9 @@ module.exports = {
 		var User = req.booster.models.user;
 		User.get(req.param("user"),function (err,data) {
 			if (err) {
-				res.send(400,err);
+				res.status(400).send(err);
 			} else {
-				res.send(200,filter(User,data,req.param("visibility")));
+				res.send(filter(User,data,req.param("visibility")));
 			}
 		});
 	}

@@ -2,7 +2,7 @@
 /*jslint node:true, debug:true, nomen:true */
 /*jshint unused:vars */
 var express = require('express'), _ = require('lodash'), request = require('supertest'), booster = require('../lib/booster'), 
-async = require('async'), db = require('./resources/db');
+async = require('async'), db = require('./resources/db'), bodyParser = require('body-parser');
 
 
 
@@ -12,8 +12,8 @@ describe('controllers',function () {
 	beforeEach(function(){
 		db.reset();
 		app = this.app = express();
-		app.use(express.urlencoded());
-		app.use(express.json());
+		app.use(bodyParser.urlencoded({extended:true}));
+		app.use(bodyParser.json());
 	});
 	describe('with controllers',function () {
 		beforeEach(function (done) {

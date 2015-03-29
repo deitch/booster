@@ -2,7 +2,7 @@
 /*jslint node:true, debug:true, nomen:true */
 /*jshint unused:vars */
 var express = require('express'), request = require('supertest'), booster = require('../lib/booster'), 
-db = require('./resources/db');
+db = require('./resources/db'), bodyParser = require('body-parser');
 
 
 // call the debugger in case we are in debug mode
@@ -13,8 +13,8 @@ describe('general route',function () {
 		app = this.app = express();
 	});
 	beforeEach(function (done) {
-		app.use(express.urlencoded());
-		app.use(express.json());
+		app.use(bodyParser.urlencoded({extended:true}));
+		app.use(bodyParser.json());
 		app.use(function (req,res,next) {
 			req.hasBooster = {};
 			next();
@@ -32,7 +32,7 @@ describe('general route',function () {
 		booster.resource('post');
 		app.get('/booster',function (req,res,next) {
 			req.hasBooster.route = req.booster;
-			res.send(200,req.hasBooster);
+			res.send(req.hasBooster);
 		});
 		r = request(app);
 		done();

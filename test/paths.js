@@ -2,7 +2,7 @@
 /*jslint node:true, debug:true, nomen:true */
 /*jshint unused:vars */
 var express = require('express'), _ = require('lodash'), request = require('supertest'), booster = require('../lib/booster'), 
-async = require('async'), db = require('./resources/db'), path;
+async = require('async'), db = require('./resources/db'), path, bodyParser = require('body-parser');
 
 
 // call the debugger in case we are in debug mode
@@ -11,8 +11,8 @@ describe('paths',function () {
 	beforeEach(function(){
 		db.reset();
 		app = this.app = express();
-		app.use(express.urlencoded());
-		app.use(express.json());
+		app.use(bodyParser.urlencoded({extended:true}));
+		app.use(bodyParser.json());
 	});
 	describe('at the root path', function(){
 		beforeEach(function (done) {
