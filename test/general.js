@@ -15,14 +15,24 @@ describe('general route',function () {
 	beforeEach(function (done) {
 		app.use(express.urlencoded());
 		app.use(express.json());
+		app.use(function (req,res,next) {
+			req.hasBooster = {};
+			next();
+		});
+		app.use(booster.reqLoader);
+		app.use(function (req,res,next) {
+			req.hasBooster.pre = req.booster;
+			next();
+		});
 		booster.init({db:db,app:app});
+		app.use(function (req,res,next) {
+			req.hasBooster.post = req.booster;
+			next();
+		});
 		booster.resource('post');
 		app.get('/booster',function (req,res,next) {
-			if (req.booster) {
-				res.send(200,req.booster);
-			} else {
-				res.send(404);
-			}
+			req.hasBooster.route = req.booster;
+			res.send(200,req.hasBooster);
 		});
 		r = request(app);
 		done();
@@ -30,8 +40,24 @@ describe('general route',function () {
   it('should have access to req.booster on non-booster route', function(done){
     r.get('/booster').end(function (err,res) {
     	res.status.should.eql(200);
-			res.body.models.should.eql({post:{}});
-			res.body.param.should.eql({});
+			res.body.route.models.should.eql({post:{}});
+			res.body.route.param.should.eql({});
+			done();
+    });
+  });
+  it('should have access to req.booster on post-init middleware', function(done){
+    r.get('/booster').end(function (err,res) {
+    	res.status.should.eql(200);
+			res.body.post.models.should.eql({post:{}});
+			res.body.post.param.should.eql({});
+			done();
+    });
+  });
+  it('should have access to req.booster on post-init middleware', function(done){
+    r.get('/booster').end(function (err,res) {
+    	res.status.should.eql(200);
+			res.body.pre.models.should.eql({post:{}});
+			res.body.pre.param.should.eql({});
 			done();
     });
   });

@@ -688,6 +688,30 @@ booster.resource("post");
 booster.resource('comment',{parent:"post"},{}); // the second one is like booster.resource('comment');
 ````
 
+### Accessing Models
+As you will see below, booster makes the models (and all of their functions) available in several places by passing them into calls, like filters and post-processors.
+
+In addition, you have an even better way to access them: `request`.
+
+Your express request will be loaded with `req.booster`, an object which includes `req.booster.models`. These are available on any handler after `booster.init`. For example:
+
+````JavaScript
+app.use(handler1); // will NOT have req.booster
+booster.init();
+app.use(handler2); // will have req.booster
+````
+
+If you need to have `req.booster` available even *before* calling `booster.init()`, just add the `reqLoader` middleware:
+
+````JavaScript
+app.use(booster.reqLoader);
+app.use(handler1); // will have req.booster TOO
+booster.init();
+app.use(handler2); // will have req.booster
+````
+
+And don't worry... you know it is safe to run multiple times (idempotent, for those who prefer fancy words).
+
 
 ### Controllers
 The default controller provides the standard actions: index, show, create, update, patch, destroy. It interacts with the models of the same name (see *models*, below), and lists all of them, shows one, creates a new one, updates an existing one, or destroys one.
