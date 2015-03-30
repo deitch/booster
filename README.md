@@ -24,6 +24,8 @@ Want customized controllers? Disable some paths? Nest resources? Model validatio
 ## Breaking Changes
 Version 2.0.0 and higher works **only** with expressjs version 4.x. Booster versions <2.0.0 will work **only** with express version <4.0.0 and booster versions >=2.0.0 will work **only** with express version >=4.0.0.
 
+Version 2.0.0 and higher also does not pass the status code to the post-processor. You can retrieve it yourself via `res.statusCode`. See the documentation on post-processors.
+
 ## Features
 Here are just *some* of the key features:
 
@@ -974,11 +976,11 @@ The order of execution is:
 Post-processor signatures look slightly different than most handlers, since they need to know what the result of the normal controller method was.
 
 ````JavaScript
-function(req,res,next,status,body) {
+function(req,res,next,body) {
 };
 ````
 
-`req`, `res`, `next` are the normal arguments to a route handler. `status` is the status code and `body` is the body returned by the controller method, if any. 
+`req`, `res`, `next` are the normal arguments to a route handler. `body` is the body returned by the controller method, if any. If you want the `res` status as set until now, you can retrieve it with the standard `res.statusCode`.
 
 Your post-processor filter has 3 options:
 
@@ -1010,8 +1012,8 @@ You could save part of it by filtering it in the controller using post-processor
 ````JavaScript
 {
 	post: {
-		index: function(req,res,next,status,body) {
-			if (status === 200 && body && body.length > 0) {
+		index: function(req,res,next,body) {
+			if (res.statusCode === 200 && body && body.length > 0) {
 				// all users in descending order
 				var users = _.sortBy(body,"age").reverse();
 				// now get the first 20
@@ -1189,7 +1191,7 @@ What you want is when you publish a `post` by changing its status from "draft" t
 Of course, you can do that by putting a `post` processor in the controller. For example, the controller for `post` might be:
 
     post: {
-			patch: function(req,res,next,status,body) {
+			patch: function(req,res,next,body) {
 				if (req.body && req.body.status === "published") {
 					req.booster.models.content.find({post:req.param("post")},function(err,data) {
 						if (data && data.length > 0) {
