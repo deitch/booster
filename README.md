@@ -1195,7 +1195,7 @@ Of course, you can do that by putting a `post` processor in the controller. For 
 				if (req.body && req.body.status === "published") {
 					req.booster.models.content.find({post:req.param("post")},function(err,data) {
 						if (data && data.length > 0) {
-							req.booster.models.content.patch(_.pluck(data,"id"),{status:"published"},function(err,data){
+							req.booster.models.content.patch(_.map(data,"id"),{status:"published"},function(err,data){
 								next();
 							});
 						}

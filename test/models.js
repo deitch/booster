@@ -1066,7 +1066,7 @@ describe('models',function () {
 		});
 	});
 	describe('search by boolean', function(){
-		var data = db.data("boolean"), f = _.where(data,{bool:false}), t = _.where(data,{bool:true});
+		var data = db.data("boolean"), f = _.filter(data,{bool:false}), t = _.filter(data,{bool:true});
 		it('should give correct results for false match',function (done) {
 			booster.models.boolean.find({bool:false},function (err,res) {
 				res.should.eql(f);
