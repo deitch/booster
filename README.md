@@ -54,7 +54,7 @@ Here are just *some* of the key features:
 * Restrict mutability by field
 * Cascading field changes to children
 * Cascading delete: automatically cascade deletes to children, prevent if children exist, or prevent unless force
-* Differing visiblity by field: public, private, secret and custom
+* Differing visibility by field: public, private, secret and custom
 * Custom presave processors
 * Custom model functions
 
