@@ -170,6 +170,21 @@ This sets up a resource named 'comment', expecting a controller (or using the de
     PATCH     /comment/:comment    comment#patch()
     DELETE    /comment/:comment    comment#destroy()
 
+If you prefer to stick with the commonly-accepted standard for plural route names, just indicate it:
+
+    booster.resource('comment',{pluralize:true});
+		
+This sets up a resource named 'comment', expecting a controller (or using the default) for comment, and a model (or using the default) for comment. As shown above, it creates six paths by default:
+
+    GET       /comments             comment#index()
+    GET       /comments/:comment    comment#show()
+    POST      /comments             comment#create()
+    PUT       /comments/:comment    comment#update()
+    PATCH     /comments/:comment    comment#patch()
+    DELETE    /comments/:comment    comment#destroy()
+
+Note that the controller name, model name and parameter are unchanged as single, and you instantiate the resource with a single element; you just tell it that the base of the route should be plural. 
+
 
 #### Name of the rose. I mean resource.
 The first (and only required) argument to `booster.resource()` is the name of the resource. It should be all string, valid alphanumeric, and will ignore all leading and trailing whitespace. It will also ignore anything before the last slash, so:
@@ -179,6 +194,7 @@ The first (and only required) argument to `booster.resource()` is the name of th
 		a/b/c   -> c
 		ca/     -> INVALID
 
+The name of the resource is expected to be single, since the resource is a `car` or `post` or `comment`, and not `cars`, `posts` or `comments`. If you want the *path* to be plural, as `/comments/:comment` and not `/comment/:comment`, then use the `pluralize` option; see below.
 
 #### Format extension
 Many apps, rather than having the path `/comment/:comment` prefer the format `/commen/:comment.:format?`. This means that both `/comment/1` **and** `/comment/1.json` would be acceptable.
@@ -271,6 +287,23 @@ NOTE: booster init setting `{sendObject:false}` is the same as not setting an in
 `opts` is just a plain old JavaScript object with options. What goes into those options? That depends what you want to do with this resource and what path it should have.
 
 You can have the resource accessible from multiple paths and behave differently in each of those paths, by having multiple `opts`. First, let's see what you can do with each opts, then we'll string multiple together.
+
+##### Pluralize
+If you prefer to stick with the commonly-accepted standard for plural route names, use the `pluralize` option:
+
+    booster.resource('comment',{pluralize:true});
+		
+This sets up a resource named 'comment', expecting a controller (or using the default) for comment, and a model (or using the default) for comment. As shown above, it creates six paths by default:
+
+    GET       /comments             comment#index()
+    GET       /comments/:comment    comment#show()
+    POST      /comments             comment#create()
+    PUT       /comments/:comment    comment#update()
+    PATCH     /comments/:comment    comment#patch()
+    DELETE    /comments/:comment    comment#destroy()
+
+Note that the controller name, model name and parameter are unchanged as single, and you instantiate the resource with a single element; you just tell it that the base of the route should be plural. 
+
 
 ##### Base path
 If you prefer to have a base path to your resource, so the path is `/api/comment`, just do:
@@ -639,6 +672,36 @@ module.exports = {
 	}
 }
 ````
+
+###### Plural Resource as a Property
+If you made the child resource pluralized, you need to pluralize the resource-as-a-property as well. 
+
+So you can do this:
+
+````javascript
+booster.resource('group'); // creates /api/group
+booster.resource('user',{resource:{group:["set"]}}); // creates /api/user/123/group
+````
+
+In the above, the `group` in `/api/user/123/group` is singular (but still will return a list of group IDs).
+
+You also can do:
+
+````javascript
+booster.resource('group',{pluralize:true}); // creates /api/groups
+booster.resource('user',{pluralize:true,resource:{groups:["set"]}}); // creates /api/users/123/groups
+````
+
+... wherein the `group` in `/api/users/123/groups` is plural.
+
+But you **cannot** do:
+
+````javascript
+booster.resource('group',{pluralize:true}); // creates /api/groups
+booster.resource('user',{pluralize:true,resource:{group:["set"]}}); // creates /api/users/123/group
+````
+
+... because you pluralized `group`, so as a child resource / resource as a property, you **must** pluralize it as well.
 
 
 ##### Root path

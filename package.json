@@ -1,12 +1,13 @@
 {
   "name": "booster",
   "description": "Booster is the ***fastest*** way to get a full-fledged REST service up and running in [nodejs](http://nodejs.org)!",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "url": "http://boosterjs.com",
   "author": "Avi Deitcher <avi@deitcher.net>",
   "engines": [
     "node >= 0.10.0"
   ],
+	"license":"mit",
   "keywords": [
     "framework",
     "restful",
@@ -25,6 +26,7 @@
     "async": "0.2",
     "body-parser": "^1.12.2",
     "lodash": "^4.6.1",
+    "pluralize": "^1.2.1",
     "searchjs": ">=0.3.5"
   },
   "devDependencies": {
